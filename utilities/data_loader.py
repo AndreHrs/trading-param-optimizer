@@ -13,7 +13,6 @@ def load_data(file_path: str) -> tuple[NDArray, NDArray, NDArray, NDArray]:
   Returns:
     tuple(numpyArray, numpyArray, numpyArray, numpyArray): tuple of numpy arrays arranged in
       (prices pre-2020, dates pre-2020, prices from 2020+, dates from 2020-01-01+)
-  Returns
   """
   df = pd.read_csv(file_path)
   # The order of data is descending (newest first, so flip with -1 indexing)
