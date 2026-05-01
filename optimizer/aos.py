@@ -31,10 +31,8 @@ class AOS:
         self.candidate_solutions = lows + np.random.rand(self.pop_size, len(self.param_names)) * (highs - lows)
 
     def _evaluate_all(self, fitness_fn):
-        self.energy = np.zeros(self.pop_size)
-        for i, candidate in enumerate(self.candidate_solutions):
-            rounded = np.round(candidate).astype(int)
-            self.energy[i] = fitness_fn(rounded)
+        rounded_all = np.round(self.candidate_solutions).astype(int)  # shape (pop_size, d)
+        self.energy = np.array([fitness_fn(row) for row in rounded_all])
 
     # --- core AOS mechanics ---
 
