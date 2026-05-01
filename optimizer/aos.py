@@ -2,7 +2,7 @@ import numpy as np
 import random
 class AOS:
 
-    def __init__(self, pop_size, max_evals, n_shells, photon_rate=0.5):
+    def __init__(self, pop_size, max_iterations, n_shells, photon_rate=0.5):
         # hyperparameters
         self.candidate_solutions = []
         self.param_ranges =[]
@@ -10,10 +10,9 @@ class AOS:
         self.best_params = {}
         self.best_fitness = {}
         self.history = {}
-        self.n_evals = {}
         self.pop_size = pop_size
 
-        self.max_evals = max_evals
+        self.max_iterations = max_iterations
         self.n_shells = n_shells # This is for max number of n shells not fixed
         self.photon_rate = photon_rate
         pass
@@ -46,9 +45,6 @@ class AOS:
 
         # Eq(3) sort the electrons
         sorted_indices = np.argsort(self.energy)
-        
-        # Update the nucleus position first
-        self._update_nucleus(sorted_indices)
     
         # remaining candidates get split into shells
         remaining = sorted_indices[1:]  # exclude the copied nucleus
@@ -57,20 +53,13 @@ class AOS:
         #  bounded by min(n_shells and population) size
         n = np.random.randint(1, min(self.n_shells, len(remaining)) + 1)
         self.shells = np.array_split(remaining, n)
-
-    def _absorption(self, electron_idx, bounds):
-        # electron absorbs energy = moves to outer shell (exploration EQ.11) 
-        pass
-
-    def _emission(self, electron_idx, bounds):
-        # electron emits energy = moves to inner shell (exploitation EQ.10)
-        pass
-
+        
     def _update_nucleus(self, sorted_indices):
         # track best solution found so far
         # nucleus = single best candidate (LE)
         self.nucleus_idx = sorted_indices[0]
         self.LE = self.candidate_solutions[self.nucleus_idx].copy()
+        self.LE_energy = self.energy[self.nucleus_idx]
 
         # SELF_NOTE: This is my suspect that might cause this to not perform as best
         #   LE (Best candidate) is replaced every epoch without any memory
@@ -83,16 +72,22 @@ class AOS:
 
     def _calculate_global_binding(self):
         self.BS, self.BE = self._calculate_binding(self.candidate_solutions, self.energy)
+
         
     def _calculate_shell_binding(self, shell):
         shell_candidates = self.candidate_solutions[shell]
         shell_energies   = self.energy[shell]
         BSk, BEk = self._calculate_binding(shell_candidates, shell_energies)
-        LEk = shell_candidates[np.argmin(shell_energies)]
+        LEk = shell_candidates[np.argmin(shell_energies)]  # best in this shell only
         return BSk, BEk, LEk
-    # --- main entry point ---
 
+    # --- main entry point ---
     def run(self, fitness_fn, bounds):
+        self.history = {
+            "LE_energy":   [],
+            "LE_position": [],
+            "population":  [],
+        }
         self.param_names = list(bounds.keys())
         self.param_ranges = np.array([bounds[k] for k in self.param_names])
 
@@ -103,34 +98,52 @@ class AOS:
         self._init_population(bounds)
         self._evaluate_all(fitness_fn)
 
+        sorted_indices = np.argsort(self.energy)
+        self._update_nucleus(sorted_indices)  
         self._calculate_global_binding()
-        
-        # While (iteration < Maximum number of iterations):
         self._assign_shells()
-        print(f"BS, BE, LE = {self.BS} {self.BE} {self.LE}")
-        # Iterate over shells
 
-        print(self.candidate_solutions)
-        print(self.energy)
-        print(self.shells)
-        for k, shell in enumerate(self.shells):
-            BSk, BEk, LEk = self._calculate_shell_binding(shell)
-            # Iterate over candidate solutions in shells
-            for i, electron in enumerate(shell):
-                print('i', i)
-                print('electron', electron)
-                print('shell', shell)
-                pi = random.uniform(0.0, 1.0)
-                alpha = np.random.rand(len(self.candidate_solutions[electron]))
-                beta  = np.random.rand(len(self.candidate_solutions[electron]))
-                gamma = np.random.rand(len(self.candidate_solutions[electron]))
-                if pi >= self.photon_rate:
-                    print("Movement of electron based on emission and absorption")
-                    if(self.energy[electron] >= BEk):
-                        print("Energy level of ith solution caondidate is higher than biding energy of layer")
+        iteration = 0
+        while (iteration <= self.max_iterations):
+            # clip to bounds so moves cannot go out of range
+            lows  = self.param_ranges[:, 0]
+            highs = self.param_ranges[:, 1]
+            for k, shell in enumerate(self.shells):
+                BSk, BEk, LEk = self._calculate_shell_binding(shell)
+                
+                for electron_idx in shell:
+                    phi   = np.random.rand()
+                    alpha = np.random.rand(len(self.param_names))
+                    beta  = np.random.rand(len(self.param_names))
+                    gamma = np.random.rand(len(self.param_names))
+                    
+                    current = self.candidate_solutions[electron_idx]
+                    
+                    if phi >= self.photon_rate:
+                        # photon interaction to determine emission or absorption
+                        if self.energy[electron_idx] >= BEk:
+                            # Eq. 10 emission, pull toward global LE and BS
+                            new = current + (alpha * (beta * self.LE - gamma * self.BS)) / (k + 1)
+                        else:
+                            # Eq. 11 absorption, pull toward shell LEk and BSk
+                            new = current + alpha * (beta * LEk - gamma * BSk)
                     else:
-                        print("Energy level of ith solution candidate in kth layer is lower than binding energy")
-                else:
-                    print("Movement of electron based on other acts")
+                        # Eq. 12 random walk
+                        new = current + np.random.rand(len(self.param_names))
+                    self.candidate_solutions[electron_idx] = np.clip(new, lows, highs)
 
-    
+            # re-evaluate after all candidates have moved
+            self._evaluate_all(fitness_fn)
+            sorted_indices = np.argsort(self.energy)   # fresh sort
+            self._update_nucleus(sorted_indices)
+            self._calculate_global_binding()
+            self._assign_shells()
+
+            # logging
+            self.history["LE_energy"].append(self.LE_energy)
+            self.history["LE_position"].append(self.LE.copy())
+
+            iteration += 1
+        self.best_params = self.LE
+        self.best_fitness = self.LE_energy
+                
