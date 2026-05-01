@@ -1,7 +1,8 @@
 import numpy as np
+import random
 class AOS:
 
-    def __init__(self, pop_size, max_evals, n_shells):
+    def __init__(self, pop_size, max_evals, n_shells, photon_rate=0.5):
         # hyperparameters
         self.candidate_solutions = []
         self.param_ranges =[]
@@ -14,6 +15,7 @@ class AOS:
 
         self.max_evals = max_evals
         self.n_shells = n_shells # This is for max number of n shells not fixed
+        self.photon_rate = photon_rate
         pass
 
     # --- setup ---
@@ -107,8 +109,28 @@ class AOS:
         self._assign_shells()
         print(f"BS, BE, LE = {self.BS} {self.BE} {self.LE}")
         # Iterate over shells
+
+        print(self.candidate_solutions)
+        print(self.energy)
+        print(self.shells)
         for k, shell in enumerate(self.shells):
             BSk, BEk, LEk = self._calculate_shell_binding(shell)
             # Iterate over candidate solutions in shells
+            for i, electron in enumerate(shell):
+                print('i', i)
+                print('electron', electron)
+                print('shell', shell)
+                pi = random.uniform(0.0, 1.0)
+                alpha = np.random.rand(len(self.candidate_solutions[electron]))
+                beta  = np.random.rand(len(self.candidate_solutions[electron]))
+                gamma = np.random.rand(len(self.candidate_solutions[electron]))
+                if pi >= self.photon_rate:
+                    print("Movement of electron based on emission and absorption")
+                    if(self.energy[electron] >= BEk):
+                        print("Energy level of ith solution caondidate is higher than biding energy of layer")
+                    else:
+                        print("Energy level of ith solution candidate in kth layer is lower than binding energy")
+                else:
+                    print("Movement of electron based on other acts")
 
     
