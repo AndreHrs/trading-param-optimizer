@@ -35,8 +35,7 @@ class AOS:
         self.candidate_solutions = lows + np.random.rand(self.pop_size, len(self.param_names)) * (highs - lows)
 
     def _evaluate_all(self, fitness_fn):
-        rounded_all = np.round(self.candidate_solutions).astype(int)  # shape (pop_size, d)
-        self.energy = np.array([fitness_fn(row) for row in rounded_all])
+        self.energy = np.array([fitness_fn(row) for row in self.candidate_solutions])
 
     # --- core AOS mechanics ---
 
@@ -53,7 +52,7 @@ class AOS:
         #  bounded by min(n_shells and population) size
         n = np.random.randint(1, min(self.n_shells, len(remaining)) + 1)
         self.shells = np.array_split(remaining, n)
-        
+
     def _update_nucleus(self, sorted_indices):
         # track best solution found so far
         # nucleus = single best candidate (LE)
@@ -72,8 +71,7 @@ class AOS:
 
     def _calculate_global_binding(self):
         self.BS, self.BE = self._calculate_binding(self.candidate_solutions, self.energy)
-
-        
+   
     def _calculate_shell_binding(self, shell):
         shell_candidates = self.candidate_solutions[shell]
         shell_energies   = self.energy[shell]
@@ -81,6 +79,9 @@ class AOS:
         LEk = shell_candidates[np.argmin(shell_energies)]  # best in this shell only
         return BSk, BEk, LEk
 
+    def get_best_params(self):
+        return dict(zip(self.param_names, self.best_params))
+        
     # --- main entry point ---
     def run(self, fitness_fn, bounds):
         self.history = {
