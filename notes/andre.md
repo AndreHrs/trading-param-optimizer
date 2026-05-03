@@ -78,3 +78,8 @@ v got flipped with `v[::-1]` where v is the kernel and a is the series data.
 I didn't change the source code for example provided by project 2 brief so I wonder how it is correct too.
 
 *When in doubt, crack open the source code XD
+
+# Something about performance
+Somehow EMA works better than LMA and SMA only. EMA with the shared alpha usually have the highest return in train set, however they often never cross any threshold on test, making the equity did not change.
+
+Weighted one is the absolute beast at the moment.
