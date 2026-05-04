@@ -83,3 +83,15 @@ I didn't change the source code for example provided by project 2 brief so I won
 Somehow EMA works better than LMA and SMA only. EMA with the shared alpha usually have the highest return in train set, however they often never cross any threshold on test, making the equity did not change.
 
 Weighted one is the absolute beast at the moment.
+
+# On PSO
+Both Particle Swarm Optimization (1995) and A Modified Particle Swarm Optimizer (1998) did not mention best starting
+velocity. So I will set it into hyperparameter max_vel_frac. This hyperparameter will also set the maximum velocity
+the particles can go.
+
+The reason being if no velocity is set, the velocity may explode (the particle can zip from one side to the end of other size of the axis instantly)
+
+The variable naming are weird like energy and position and that is because I "ported" my AOS code.
+
+Shi and Eberheart in 1998 mentioned that w works best between 0.9 to 1.2, and they used decreasing function. So I implemented that. Also in order to not have the weight turn to 0. It is important to set a minimum weight possible. 
+0.4 somehow became a community standard and that will be the number I go with.

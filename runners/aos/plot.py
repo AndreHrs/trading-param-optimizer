@@ -11,7 +11,12 @@ def plot_equity_and_purchases(aos, prices, short_signal, long_signal, buy_at, se
         ax_left.set_xlabel("Time")
         ax_left.set_ylabel("Portfolio Value")
     else:
-        ax_left.plot(aos.history["LE_energy"], label="LE energy", color="blue")
+        if("gbest_energy" in aos.history.keys()):
+            energy_history = aos.history["gbest_energy"]
+        else:
+            energy_history = aos.history["LE_energy"]
+
+        ax_left.plot(energy_history, label="LE energy", color="blue")
         ax_left.set_title("LE Curve")
         ax_left.set_xlabel("Iteration")
         ax_left.set_ylabel("Energy (negated cash)")
