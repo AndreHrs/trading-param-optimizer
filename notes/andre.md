@@ -95,3 +95,34 @@ The variable naming are weird like energy and position and that is because I "po
 
 Shi and Eberheart in 1998 mentioned that w works best between 0.9 to 1.2, and they used decreasing function. So I implemented that. Also in order to not have the weight turn to 0. It is important to set a minimum weight possible. 
 0.4 somehow became a community standard and that will be the number I go with.
+
+# Another TODO:
+Seems like EMA with independent alpha gave the algorithm more "room to wiggle". While Weighted method usually returns slightly better result, the increase from 4 dimension to 14 dimension is debatable. Gather enough data to prove this argument,
+
+# Matter regarding the GPS implementations
+## Implemented maximum iteration
+THe pseudocode provided in lecture notes will try until step_size is smaller than threshold. However this can take a very long time, so I added maximum iteration to break it early if max iteration is reached.
+
+## Step size initialisation:
+Initial step sizes were set to half the parameter range for each dimension, following the practical heuristic that the initial step should be large enough to escape the local neighbourhood of the starting point. Smaller step sizes caused premature convergence and the algorithm exhausted its budget decaying toward tolerance before meaningfully exploring the space. This is consistent with the known sensitivity of pattern search methods to initial step size selection.
+
+## Sign flip for maximisation:
+The standard GPS formulation minimises the objective function. Since our fitness function returns final portfolio cash (to be maximised), the acceptance condition was flipped to fitness_new > current_fitness. This is equivalent to negating the objective function, which is the standard transformation for converting maximisation to minimisation problems in optimisation.
+
+## Direction set D as 2n axis-aligned vectors:
+The direction set D was constructed as the positive and negative axis-aligned unit vectors scaled by per-dimension step magnitudes, yielding 2n directions for an n-dimensional problem. This choice satisfies the positive spanning set requirement for GPS convergence guarantees, and the per-dimension scaling addresses the heterogeneous parameter scales in our problem (window sizes ranging 2 to 200 versus alpha values (and later, weight) in [0,1]). While this gives the same direction count as Hooke-Jeeves, the opportunistic acceptance and dynamic ordering distinguish the implementation as a GPS variant.
+
+## Dynamic D as Python list with runtime numpy conversion:
+D is accepted as a plain Python list of lists at the interface level for usability, and converted to a list of numpy arrays internally at the start of run(). This is necessary because scalar-vector multiplication (step_size * d) requires numpy array semantics. Accepting plain lists avoids exposing implementation details to the caller, consistent with good encapsulation practice.
+
+## Todo for experiment:
+Try "scattering" some solutions of GPS later.
+
+Why?
+If nature algorithm only initialize once (even though it's a population of it), then GPS should also do only one initialization (even though it is one solution) to be fair. Running single nature inspired algorithm vs GPS initialized at 20 starts would be unfair as GPS get a pseudo-population.
+
+But the reason we might consider scattering is also:
+GPS is local search and the result is heavily dependant on where it start. Single run may land in terrible local optimum from bad luck alone, making it worse than it is. SO that's not exactly fair either too(?)
+
+So probably I will try it later and gather result.
+
