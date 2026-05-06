@@ -36,7 +36,8 @@ class SOS:
         self.history = {
             "LE_energy": [],       # Keeping same name as AOS for runner compatibility
             "LE_position": [],
-            "population": []
+            "population": [],
+            "population_avg_fitness": []
         }
         self.param_names = list(bounds.keys())
         self.param_ranges = np.array([bounds[k] for k in self.param_names])
@@ -118,6 +119,7 @@ class SOS:
             # Logging
             self.history["LE_energy"].append(self.best_fitness)
             self.history["LE_position"].append(self.best_params.copy())
+            self.history["population_avg_fitness"].append(np.mean(self.fitness))
             
             iteration += 1
 
