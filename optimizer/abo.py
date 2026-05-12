@@ -46,10 +46,11 @@ class ABO:
 
         self.epoch_count = 0
         self.time = 0.0
+        self.early_stop = False
 
     # --- setup ---
 
-    def _init_population(self, bounds):
+    def _init_population(self, bounds, initial_population=None):
         """
         Randomly place all buffalos within bounds and zero their exploitation vectors.
 
@@ -61,7 +62,10 @@ class ABO:
         lows  = self.param_ranges[:, 0]
         highs = self.param_ranges[:, 1]
 
-        self.candidate_solutions    = lows + np.random.rand(self.pop_size, len(self.param_names)) * (highs - lows)
+        if initial_population is not None:
+            self.candidate_solutions = np.array(initial_population, dtype=float)
+        else:
+            self.candidate_solutions = lows + np.random.rand(self.pop_size, len(self.param_names)) * (highs - lows)
         self.exploitation_vectors   = np.zeros((self.pop_size, len(self.param_names)))
         self.personal_best_positions = self.candidate_solutions.copy()
         self.personal_best_fitness   = np.full(self.pop_size, np.inf)
@@ -107,7 +111,7 @@ class ABO:
 
     # --- main entry point ---
 
-    def run(self, fitness_fn, bounds):
+    def run(self, fitness_fn, bounds, initial_population=None):
         self.history = {
             "gbest_energy":   [],
             "gbest_position": [],
@@ -119,7 +123,7 @@ class ABO:
         self.global_best_fitness = float('inf')
         self.global_best_position = None
 
-        self._init_population(bounds)
+        self._init_population(bounds, initial_population)
         self._evaluate_all(fitness_fn)
         self._update_personal_best()
         self._update_global_best()

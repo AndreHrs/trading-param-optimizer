@@ -66,7 +66,7 @@ class MRFO:
     # INITIALIZATION
     # ============================================================
 
-    def _init_population(self, bounds):
+    def _init_population(self, bounds, initial_population=None):
 
         self.param_names = list(bounds.keys())
         self.param_ranges = np.array(
@@ -77,11 +77,14 @@ class MRFO:
         lows = self.param_ranges[:, 0]
         highs = self.param_ranges[:, 1]
 
-        self.population = (
-            lows
-            + np.random.rand(self.pop_size, len(self.param_names))
-            * (highs - lows)
-        )
+        if initial_population is not None:
+            self.population = np.array(initial_population, dtype=float)
+        else:
+            self.population = (
+                lows
+                + np.random.rand(self.pop_size, len(self.param_names))
+                * (highs - lows)
+            )
 
     # ============================================================
     # BOUNDARY HANDLING
@@ -315,7 +318,7 @@ class MRFO:
     # MAIN OPTIMIZATION LOOP
     # ============================================================
 
-    def run(self, fitness_fn, bounds):
+    def run(self, fitness_fn, bounds, initial_population=None):
 
         # initialize logs
         self.history = {
@@ -327,7 +330,7 @@ class MRFO:
         self.early_stop = False
 
         # initialize population
-        self._init_population(bounds)
+        self._init_population(bounds, initial_population)
 
         # initial evaluation
         self._evaluate_all(fitness_fn)
