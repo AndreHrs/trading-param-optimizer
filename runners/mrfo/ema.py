@@ -69,7 +69,7 @@ def _fitness_independent(candidate, prices):
     return -cash   # unified minimization
 
 # --- runner, i adapted from the AOS structure ---
-def run_shared(prices, pop_size=100, max_iter=50, somersault=2.0):
+def run_shared(prices, pop_size=100, max_iter=50, somersault=2.0, initial_population=None):
 
     def fitness(candidate):
         return _fitness_shared(candidate, prices)
@@ -80,11 +80,11 @@ def run_shared(prices, pop_size=100, max_iter=50, somersault=2.0):
         somersault_range=somersault
     )
 
-    mrfo.run(fitness, bounds=BOUNDS_SHARED)
+    mrfo.run(fitness, bounds=BOUNDS_SHARED, initial_population=initial_population)
 
     return mrfo
 
-def run_independent(prices, pop_size=100, max_iter=50, somersault=2.0):
+def run_independent(prices, pop_size=100, max_iter=50, somersault=2.0, initial_population=None):
 
     def fitness(candidate):
         return _fitness_independent(candidate, prices)
@@ -95,6 +95,6 @@ def run_independent(prices, pop_size=100, max_iter=50, somersault=2.0):
         somersault_range=somersault
     )
 
-    mrfo.run(fitness, bounds=BOUNDS_INDEPENDENT)
+    mrfo.run(fitness, bounds=BOUNDS_INDEPENDENT, initial_population=initial_population)
 
     return mrfo

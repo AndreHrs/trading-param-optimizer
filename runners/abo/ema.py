@@ -35,7 +35,7 @@ def get_signals_independent(best_params, prices):
     return short, long
 
 
-def run_shared(prices, pop_size=40, max_iter=50, lp1=0.5, lp2=0.5, stagnation_limit=10):
+def run_shared(prices, pop_size=40, max_iter=50, lp1=0.5, lp2=0.5, stagnation_limit=10, initial_population=None):
     def fitness(candidate):
         short_n = int(round(candidate[0]))
         long_n  = int(round(candidate[1]))
@@ -46,11 +46,11 @@ def run_shared(prices, pop_size=40, max_iter=50, lp1=0.5, lp2=0.5, stagnation_li
         return -cash
 
     abo = ABO(pop_size, max_iter, lp1, lp2, stagnation_limit)
-    abo.run(fitness, bounds=BOUNDS_SHARED)
+    abo.run(fitness, bounds=BOUNDS_SHARED, initial_population=initial_population)
     return abo
 
 
-def run_independent(prices, pop_size=40, max_iter=50, lp1=0.5, lp2=0.5, stagnation_limit=10):
+def run_independent(prices, pop_size=40, max_iter=50, lp1=0.5, lp2=0.5, stagnation_limit=10, initial_population=None):
     def fitness(candidate):
         short_n     = int(round(candidate[0]))
         long_n      = int(round(candidate[1]))
@@ -62,5 +62,5 @@ def run_independent(prices, pop_size=40, max_iter=50, lp1=0.5, lp2=0.5, stagnati
         return -cash
 
     abo = ABO(pop_size, max_iter, lp1, lp2, stagnation_limit)
-    abo.run(fitness, bounds=BOUNDS_INDEPENDENT)
+    abo.run(fitness, bounds=BOUNDS_INDEPENDENT, initial_population=initial_population)
     return abo

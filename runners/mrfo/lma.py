@@ -37,7 +37,7 @@ def _fitness(candidate, prices):
 
 
 # --- runner ---
-def run(prices, pop_size=100, max_iter=50, somersault=2.0):
+def run(prices, pop_size=100, max_iter=50, somersault=2.0, initial_population=None):
 
     def fitness(candidate):
         return _fitness(candidate, prices)
@@ -48,6 +48,6 @@ def run(prices, pop_size=100, max_iter=50, somersault=2.0):
         somersault_range=somersault
     )
 
-    mrfo.run(fitness, bounds=BOUNDS)
+    mrfo.run(fitness, bounds=BOUNDS, initial_population=initial_population)
 
     return mrfo

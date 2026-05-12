@@ -49,7 +49,7 @@ def get_signals(best_params, prices):
     return high, low
 
 
-def run(prices, pop_size=100, max_iter=50, w_max=0.9, w_min=0.4, c1=2, c2=2):
+def run(prices, pop_size=100, max_iter=50, w_max=0.9, w_min=0.4, c1=2, c2=2, initial_population=None):
     def fitness(candidate):
         high = _weighted_signal(
             prices,
@@ -67,5 +67,5 @@ def run(prices, pop_size=100, max_iter=50, w_max=0.9, w_min=0.4, c1=2, c2=2):
         return -cash
 
     pso = PSO(pop_size, max_iter, w_max, w_min, c1, c2)
-    pso.run(fitness, bounds=BOUNDS)
+    pso.run(fitness, bounds=BOUNDS, initial_population=initial_population)
     return pso

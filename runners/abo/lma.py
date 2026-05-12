@@ -16,7 +16,7 @@ def get_signals(best_params, prices):
     return short, long
 
 
-def run(prices, pop_size=40, max_iter=50, lp1=0.5, lp2=0.5, stagnation_limit=10):
+def run(prices, pop_size=40, max_iter=50, lp1=0.5, lp2=0.5, stagnation_limit=10, initial_population=None):
     def fitness(candidate):
         short_n = int(round(candidate[0]))
         long_n  = int(round(candidate[1]))
@@ -26,5 +26,5 @@ def run(prices, pop_size=40, max_iter=50, lp1=0.5, lp2=0.5, stagnation_limit=10)
         return -cash
 
     abo = ABO(pop_size, max_iter, lp1, lp2, stagnation_limit)
-    abo.run(fitness, bounds=BOUNDS)
+    abo.run(fitness, bounds=BOUNDS, initial_population=initial_population)
     return abo

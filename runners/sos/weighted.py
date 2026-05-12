@@ -52,7 +52,7 @@ def get_signals(best_params, prices):
     return high, low
 
 
-def run(prices, pop_size=100, max_iter=50):
+def run(prices, pop_size=100, max_iter=50, initial_population=None):
     def fitness(candidate):
         high = _calculate_weighted_signal(
             prices,
@@ -70,5 +70,5 @@ def run(prices, pop_size=100, max_iter=50):
         return -cash
 
     sos = SOS(pop_size, max_iter)
-    sos.run(fitness, bounds=BOUNDS)
+    sos.run(fitness, bounds=BOUNDS, initial_population=initial_population)
     return sos
