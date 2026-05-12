@@ -1,4 +1,5 @@
 import numpy as np
+import time
 
 class MRFO:
     """
@@ -26,7 +27,8 @@ class MRFO:
         max_iterations,
         somersault_range=2.0,
         exploration_prob=0.5,
-        seed=None
+        seed=None,
+        patience=50
     ):
 
         # hyperparameters
@@ -34,6 +36,7 @@ class MRFO:
         self.max_iterations = max_iterations
         self.somersault_range = somersault_range
         self.exploration_prob = exploration_prob
+        self.patience = patience
 
         # reproducibility
         if seed is not None:
@@ -54,6 +57,10 @@ class MRFO:
         # public compatibility fields
         self.best_params = {}
         self.history = {}
+
+        self.epoch_count = 0
+        self.time = 0.0
+        self.early_stop = False
 
     # ============================================================
     # INITIALIZATION
@@ -317,12 +324,18 @@ class MRFO:
             "mean_fitness": [],
             "population": [],
         }
+        self.early_stop = False
 
         # initialize population
         self._init_population(bounds)
 
         # initial evaluation
         self._evaluate_all(fitness_fn)
+
+        no_improve_count = 0
+        best_energy_seen = self.best_fitness
+
+        start_time = time.perf_counter()
 
         # optimization loop
         for iteration in range(self.max_iterations):
@@ -363,6 +376,22 @@ class MRFO:
             self.history["population"].append(
                 self.population.copy()
             )
+
+            # early stopping
+            if self.best_fitness < best_energy_seen:
+                best_energy_seen = self.best_fitness
+                no_improve_count = 0
+            else:
+                no_improve_count += 1
+            if no_improve_count >= self.patience:
+                self.early_stop = True
+                self.epoch_count = iteration + 1
+                break
+
+        else:
+            self.epoch_count = self.max_iterations
+
+        self.time = (time.perf_counter() - start_time) * 1000
 
         # public compatibility
         self.best_params = self.get_best_params()

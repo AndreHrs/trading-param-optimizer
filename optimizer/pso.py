@@ -1,8 +1,9 @@
 import numpy as np
+import time
 
 class PSO:
 
-    def __init__(self, pop_size, max_iterations, w_max=0.9, w_min = 0.4, c1=2, c2=2, max_vel_frac = 0.1):
+    def __init__(self, pop_size, max_iterations, w_max=0.9, w_min=0.4, c1=2, c2=2, max_vel_frac=0.1, patience=50):
         # hyperparameters
         self.candidate_solutions = []
         self.param_ranges = []
@@ -13,12 +14,17 @@ class PSO:
         self.pop_size = pop_size
 
         self.max_iterations = max_iterations
-        self.w  = w_max 
+        self.w  = w_max
         self.w_max = w_max
         self.w_min = w_min
         self.c1 = c1  # cognitive coefficient (personal best pull)
         self.c2 = c2  # social coefficient (global best pull)
         self.max_vel_frac = max_vel_frac
+        self.patience = patience
+
+        self.epoch_count = 0
+        self.time = 0.0
+        self.early_stop = False
 
     # --- setup ---
 
@@ -85,6 +91,7 @@ class PSO:
             "gbest_position": [],
             "population":     [],
         }
+        self.early_stop = False
         self.param_names  = list(bounds.keys())
         self.param_ranges = np.array([bounds[k] for k in self.param_names])
 
@@ -93,9 +100,13 @@ class PSO:
         self._update_personal_best()
         self._update_global_best()
 
+        no_improve_count = 0
+        best_energy_seen = self.gbest_energy
+
+        start_time = time.perf_counter()
         iteration = 0
         while iteration <= self.max_iterations:
-            # Decrasing function of time for weight based on Eberhart paper
+            # Decreasing function of time for weight based on Eberhart paper
             self.w = self.w_max - (self.w_max - self.w_min) * (iteration / self.max_iterations)
 
             self._update_velocities_and_positions()
@@ -107,7 +118,20 @@ class PSO:
             self.history["gbest_energy"].append(self.gbest_energy)
             self.history["gbest_position"].append(self.gbest_position.copy())
 
+            # early stopping
+            if self.gbest_energy < best_energy_seen:
+                best_energy_seen = self.gbest_energy
+                no_improve_count = 0
+            else:
+                no_improve_count += 1
+            if no_improve_count >= self.patience:
+                self.early_stop = True
+                iteration += 1
+                break
+
             iteration += 1
 
+        self.epoch_count = iteration
+        self.time = (time.perf_counter() - start_time) * 1000
         self.best_params  = self.gbest_position
         self.best_fitness = self.gbest_energy

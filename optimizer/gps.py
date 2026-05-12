@@ -1,5 +1,6 @@
 import numpy as np
 import random
+import time
 class GPS:
     def __init__(self, initial_step_size,
             tolerance, decay_rate, max_iterations=50):
@@ -8,7 +9,9 @@ class GPS:
         self.tolerance = tolerance # epsilon
         self.decay_rate = decay_rate # gamma
         self.max_iterations = max_iterations
-        pass
+
+        self.epoch_count = 0
+        self.time = 0.0
 
     # --- setup ---
 
@@ -52,6 +55,7 @@ class GPS:
         current_solution = self.candidate_solution
         current_fitness = fitness_fn(current_solution)
         iteration = 0
+        start_time = time.perf_counter()
         while step_size > self.tolerance:
             if iteration > self.max_iterations:
                 break
@@ -81,6 +85,8 @@ class GPS:
             # print(f"DEBUG::: step: {step_size}; D: {D}")
             # print(f"Position in iteration {iteration}: {dict(zip(self.param_names, current_solution))}")
 
+        self.epoch_count = iteration
+        self.time = (time.perf_counter() - start_time) * 1000
         self.best_params  = current_solution
         self.best_fitness = current_fitness
                 
