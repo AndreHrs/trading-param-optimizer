@@ -1,4 +1,5 @@
 import numpy as np
+import time
 
 
 class ABO:
@@ -42,6 +43,9 @@ class ABO:
         self.global_best_position = None
         self.global_best_fitness = float('inf')
         self.history = {}
+
+        self.epoch_count = 0
+        self.time = 0.0
 
     # --- setup ---
 
@@ -123,6 +127,7 @@ class ABO:
         stagnation_count = 0
         iteration = 0
 
+        start_time = time.perf_counter()
         while iteration <= self.max_iterations:
             self._update_buffalo_positions()
             self._evaluate_all(fitness_fn)
@@ -147,5 +152,7 @@ class ABO:
 
             iteration += 1
 
+        self.epoch_count = iteration
+        self.time = (time.perf_counter() - start_time) * 1000
         self.best_params  = self.global_best_position
         self.best_fitness = self.global_best_fitness

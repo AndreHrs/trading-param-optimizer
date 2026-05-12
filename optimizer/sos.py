@@ -1,15 +1,17 @@
 import numpy as np
 import random
+import time
 
 class SOS:
     """
     Symbiotic Organisms Search (SOS) Optimizer
     """
-    def __init__(self, pop_size, max_iterations):
+    def __init__(self, pop_size, max_iterations, patience=50):
         # hyperparameters
         self.pop_size = pop_size
         self.max_iterations = max_iterations
-        
+        self.patience = patience
+
         self.candidate_solutions = []
         self.param_ranges = []
         self.param_names = []
@@ -17,6 +19,10 @@ class SOS:
         self.best_fitness = float('inf')
         self.history = {}
         self.fitness = []
+
+        self.epoch_count = 0
+        self.time = 0.0
+        self.early_stop = False
 
     def _init_population(self, bounds):
         self.candidate_solutions = []
@@ -53,6 +59,10 @@ class SOS:
         self.best_params = self.candidate_solutions[best_idx].copy()
         self.best_fitness = self.fitness[best_idx]
 
+        no_improve_count = 0
+        best_energy_seen = self.best_fitness
+
+        start_time = time.perf_counter()
         iteration = 0
         while iteration < self.max_iterations:
             for i in range(self.pop_size):
@@ -120,7 +130,20 @@ class SOS:
             self.history["LE_energy"].append(self.best_fitness)
             self.history["LE_position"].append(self.best_params.copy())
             self.history["population_avg_fitness"].append(np.mean(self.fitness))
-            
+
+            # early stopping
+            if self.best_fitness < best_energy_seen:
+                best_energy_seen = self.best_fitness
+                no_improve_count = 0
+            else:
+                no_improve_count += 1
+            if no_improve_count >= self.patience:
+                self.early_stop = True
+                iteration += 1
+                break
+
             iteration += 1
 
+        self.epoch_count = iteration
+        self.time = (time.perf_counter() - start_time) * 1000
         return self.best_params

@@ -1,8 +1,9 @@
 import numpy as np
 import random
+import time
 class AOS:
 
-    def __init__(self, pop_size, max_iterations, n_shells, photon_rate=0.5):
+    def __init__(self, pop_size, max_iterations, n_shells, photon_rate=0.5, patience=50):
         # hyperparameters
         self.candidate_solutions = []
         self.param_ranges =[]
@@ -15,7 +16,11 @@ class AOS:
         self.max_iterations = max_iterations
         self.n_shells = n_shells # This is for max number of n shells not fixed
         self.photon_rate = photon_rate
-        pass
+        self.patience = patience
+
+        self.epoch_count = 0
+        self.time = 0.0
+        self.early_stop = False
 
     # --- setup ---
 
@@ -89,6 +94,7 @@ class AOS:
             "LE_position": [],
             "population":  [],
         }
+        self.early_stop = False
         self.param_names = list(bounds.keys())
         self.param_ranges = np.array([bounds[k] for k in self.param_names])
 
@@ -100,10 +106,14 @@ class AOS:
         self._evaluate_all(fitness_fn)
 
         sorted_indices = np.argsort(self.energy)
-        self._update_nucleus(sorted_indices)  
+        self._update_nucleus(sorted_indices)
         self._calculate_global_binding()
         self._assign_shells()
 
+        no_improve_count = 0
+        best_energy_seen = self.LE_energy
+
+        start_time = time.perf_counter()
         iteration = 0
         while (iteration <= self.max_iterations):
             # clip to bounds so moves cannot go out of range
@@ -111,15 +121,15 @@ class AOS:
             highs = self.param_ranges[:, 1]
             for k, shell in enumerate(self.shells):
                 BSk, BEk, LEk = self._calculate_shell_binding(shell)
-                
+
                 for electron_idx in shell:
                     phi   = np.random.rand()
                     alpha = np.random.rand(len(self.param_names))
                     beta  = np.random.rand(len(self.param_names))
                     gamma = np.random.rand(len(self.param_names))
-                    
+
                     current = self.candidate_solutions[electron_idx]
-                    
+
                     if phi >= self.photon_rate:
                         # photon interaction to determine emission or absorption
                         if self.energy[electron_idx] >= BEk:
@@ -144,7 +154,21 @@ class AOS:
             self.history["LE_energy"].append(self.LE_energy)
             self.history["LE_position"].append(self.LE.copy())
 
+            # early stopping
+            if self.LE_energy < best_energy_seen:
+                best_energy_seen = self.LE_energy
+                no_improve_count = 0
+            else:
+                no_improve_count += 1
+            if no_improve_count >= self.patience:
+                self.early_stop = True
+                iteration += 1
+                break
+
             iteration += 1
+
+        self.epoch_count = iteration
+        self.time = (time.perf_counter() - start_time) * 1000
         self.best_params = self.LE
         self.best_fitness = self.LE_energy
                 
