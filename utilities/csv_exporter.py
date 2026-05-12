@@ -5,7 +5,8 @@ import os
 COLUMNS = [
     "algo", "strategy", "run_id", "start_mode",
     "final_cash", "best_fitness", "epoch_count", "runtime_ms",
-    "equity_curve", "best_params", "hyperparams", "early_stopped",
+    "equity_curve", "test_final_cash", "test_equity_curve",
+    "best_params", "hyperparams", "early_stopped",
 ]
 
 
@@ -18,7 +19,8 @@ def append_result(filepath, row_dict):
         if not file_exists:
             writer.writeheader()
         row = dict(row_dict)
-        row["equity_curve"] = json.dumps(row["equity_curve"])
-        row["best_params"]  = json.dumps(row["best_params"])
-        row["hyperparams"]  = json.dumps(row["hyperparams"])
+        row["equity_curve"]      = json.dumps(row["equity_curve"])
+        row["test_equity_curve"] = json.dumps(row["test_equity_curve"])
+        row["best_params"]       = json.dumps(row["best_params"])
+        row["hyperparams"]       = json.dumps(row["hyperparams"])
         writer.writerow(row)
