@@ -1,3 +1,4 @@
+import sys, os; sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.data_loader import load_data
 from runners.abo.common import re_evaluate
 from runners.abo.plot import plot_equity_and_purchases

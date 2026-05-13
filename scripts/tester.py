@@ -1,3 +1,4 @@
+import sys, os; sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.data_loader import load_data
 
 train_prices, train_dates, test_prices, test_dates = load_data("./data/BTC-Daily.csv")
