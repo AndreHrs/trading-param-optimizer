@@ -4,3 +4,4 @@ report.fdb_latexmk
 report.log
 report.synctex.gz
 __pycache__/
+.idea
