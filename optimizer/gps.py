@@ -12,10 +12,11 @@ class GPS:
 
         self.epoch_count = 0
         self.time = 0.0
+        self.early_stop = False
 
     # --- setup ---
 
-    def _initiate_solution(self, bounds):
+    def _initiate_solution(self, bounds, initial_position=None):
         """
         Example of bounds = {
             "window": (2, 200),
@@ -24,9 +25,12 @@ class GPS:
         """
         lows  = self.param_ranges[:, 0]  # all minimums
         highs = self.param_ranges[:, 1]  # all maximums
-        
-        # Generate single solution, not candidate solution
-        self.candidate_solution = lows + np.random.rand(len(self.param_names)) * (highs - lows)
+
+        if initial_position is not None:
+            self.candidate_solution = np.array(initial_position, dtype=float)
+        else:
+            # Generate single solution, not candidate solution
+            self.candidate_solution = lows + np.random.rand(len(self.param_names)) * (highs - lows)
 
     # --- core GPS mechanics ---
 
@@ -34,7 +38,7 @@ class GPS:
         return dict(zip(self.param_names, self.best_params))
         
     # --- main entry point ---
-    def run(self, fitness_fn, D, bounds):
+    def run(self, fitness_fn, D, bounds, initial_position=None):
         self.history = {
             "gbest_energy": [],
             "position": [],
@@ -49,7 +53,7 @@ class GPS:
         lows  = self.param_ranges[:, 0]  # all minimums
         highs = self.param_ranges[:, 1]  # all maximums
 
-        self._initiate_solution(bounds)
+        self._initiate_solution(bounds, initial_position)
 
         step_size = self.initial_step_size
         current_solution = self.candidate_solution

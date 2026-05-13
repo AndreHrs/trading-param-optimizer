@@ -50,7 +50,7 @@ def get_signals(best_params, prices):
     return high, low
 
 
-def run(prices, pop_size=40, max_iter=50, lp1=0.5, lp2=0.5, stagnation_limit=10):
+def run(prices, pop_size=40, max_iter=50, lp1=0.5, lp2=0.5, stagnation_limit=10, initial_population=None):
     def fitness(candidate):
         high = _calculate_weighted_signal(
             prices,
@@ -68,5 +68,5 @@ def run(prices, pop_size=40, max_iter=50, lp1=0.5, lp2=0.5, stagnation_limit=10)
         return -cash
 
     abo = ABO(pop_size, max_iter, lp1, lp2, stagnation_limit)
-    abo.run(fitness, bounds=BOUNDS)
+    abo.run(fitness, bounds=BOUNDS, initial_population=initial_population)
     return abo

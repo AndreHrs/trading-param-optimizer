@@ -49,7 +49,7 @@ def get_signals(best_params, prices):
     return high, low
 
 
-def run(prices, initial_step_size=1, tolerance=1e-5, decay_rate=0.5, max_iterations=50, D=[]):
+def run(prices, initial_step_size=1, tolerance=1e-5, decay_rate=0.5, max_iterations=50, D=[], initial_position=None):
     def fitness(candidate):
         high = _weighted_signal(
             prices,
@@ -67,5 +67,5 @@ def run(prices, initial_step_size=1, tolerance=1e-5, decay_rate=0.5, max_iterati
         return cash
 
     gps = GPS(initial_step_size, tolerance, decay_rate, max_iterations)
-    gps.run(fitness, D=D, bounds=BOUNDS)
+    gps.run(fitness, D=D, bounds=BOUNDS, initial_position=initial_position)
     return gps

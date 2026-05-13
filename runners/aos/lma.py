@@ -16,7 +16,7 @@ def get_signals(best_params, prices):
     return short, long
 
 
-def run(prices, pop_size=100, max_iter=50, n_shells=5):
+def run(prices, pop_size=100, max_iter=50, n_shells=5, initial_population=None):
     def fitness(candidate):
         short_n = int(round(candidate[0]))
         long_n  = int(round(candidate[1]))
@@ -26,5 +26,5 @@ def run(prices, pop_size=100, max_iter=50, n_shells=5):
         return -cash
 
     aos = AOS(pop_size, max_iter, n_shells)
-    aos.run(fitness, bounds=BOUNDS)
+    aos.run(fitness, bounds=BOUNDS, initial_population=initial_population)
     return aos

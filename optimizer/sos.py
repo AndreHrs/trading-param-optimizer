@@ -24,13 +24,15 @@ class SOS:
         self.time = 0.0
         self.early_stop = False
 
-    def _init_population(self, bounds):
-        self.candidate_solutions = []
+    def _init_population(self, bounds, initial_population=None):
         lows = self.param_ranges[:, 0]
         highs = self.param_ranges[:, 1]
-        
-        # Initialize randomly within bounds
-        self.candidate_solutions = lows + np.random.rand(self.pop_size, len(self.param_names)) * (highs - lows)
+
+        if initial_population is not None:
+            self.candidate_solutions = np.array(initial_population, dtype=float)
+        else:
+            # Initialize randomly within bounds
+            self.candidate_solutions = lows + np.random.rand(self.pop_size, len(self.param_names)) * (highs - lows)
 
     def _evaluate_all(self, fitness_fn):
         self.fitness = np.array([fitness_fn(row) for row in self.candidate_solutions])
@@ -38,7 +40,7 @@ class SOS:
     def get_best_params(self):
         return dict(zip(self.param_names, self.best_params))
 
-    def run(self, fitness_fn, bounds):
+    def run(self, fitness_fn, bounds, initial_population=None):
         self.history = {
             "LE_energy": [],       # Keeping same name as AOS for runner compatibility
             "LE_position": [],
@@ -47,11 +49,11 @@ class SOS:
         }
         self.param_names = list(bounds.keys())
         self.param_ranges = np.array([bounds[k] for k in self.param_names])
-        
+
         lows = self.param_ranges[:, 0]
         highs = self.param_ranges[:, 1]
 
-        self._init_population(bounds)
+        self._init_population(bounds, initial_population)
         self._evaluate_all(fitness_fn)
         
         # Find initial best organism

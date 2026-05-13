@@ -35,7 +35,7 @@ def get_signals_independent(best_params, prices):
     return short, long
 
 
-def run_shared(prices, initial_step_size=1, tolerance=1e-5, decay_rate=0.5, max_iterations=50, D=[]):
+def run_shared(prices, initial_step_size=1, tolerance=1e-5, decay_rate=0.5, max_iterations=50, D=[], initial_position=None):
     def fitness(candidate):
         short_n = int(round(candidate[0]))
         long_n  = int(round(candidate[1]))
@@ -46,11 +46,11 @@ def run_shared(prices, initial_step_size=1, tolerance=1e-5, decay_rate=0.5, max_
         return cash
 
     gps = GPS(initial_step_size, tolerance, decay_rate, max_iterations)
-    gps.run(fitness, D=D, bounds=BOUNDS_SHARED)
+    gps.run(fitness, D=D, bounds=BOUNDS_SHARED, initial_position=initial_position)
     return gps
 
 
-def run_independent(prices, initial_step_size=1, tolerance=1e-5, decay_rate=0.5, max_iterations=50, D=[]):
+def run_independent(prices, initial_step_size=1, tolerance=1e-5, decay_rate=0.5, max_iterations=50, D=[], initial_position=None):
     def fitness(candidate):
         short_n     = int(round(candidate[0]))
         long_n      = int(round(candidate[1]))
@@ -62,5 +62,5 @@ def run_independent(prices, initial_step_size=1, tolerance=1e-5, decay_rate=0.5,
         return cash
 
     gps = GPS(initial_step_size, tolerance, decay_rate, max_iterations)
-    gps.run(fitness, D=D, bounds=BOUNDS_INDEPENDENT)
+    gps.run(fitness, D=D, bounds=BOUNDS_INDEPENDENT, initial_position=initial_position)
     return gps

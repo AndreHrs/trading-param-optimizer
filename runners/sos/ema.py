@@ -35,7 +35,7 @@ def get_signals_independent(best_params, prices):
     return short, long
 
 
-def run_shared(prices, pop_size=100, max_iter=50):
+def run_shared(prices, pop_size=100, max_iter=50, initial_population=None):
     def fitness(candidate):
         short_n = int(round(candidate[0]))
         long_n  = int(round(candidate[1]))
@@ -46,11 +46,11 @@ def run_shared(prices, pop_size=100, max_iter=50):
         return -cash
 
     sos = SOS(pop_size, max_iter)
-    sos.run(fitness, bounds=BOUNDS_SHARED)
+    sos.run(fitness, bounds=BOUNDS_SHARED, initial_population=initial_population)
     return sos
 
 
-def run_independent(prices, pop_size=100, max_iter=50):
+def run_independent(prices, pop_size=100, max_iter=50, initial_population=None):
     def fitness(candidate):
         short_n     = int(round(candidate[0]))
         long_n      = int(round(candidate[1]))
@@ -62,5 +62,5 @@ def run_independent(prices, pop_size=100, max_iter=50):
         return -cash
 
     sos = SOS(pop_size, max_iter)
-    sos.run(fitness, bounds=BOUNDS_INDEPENDENT)
+    sos.run(fitness, bounds=BOUNDS_INDEPENDENT, initial_population=initial_population)
     return sos

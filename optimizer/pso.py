@@ -28,7 +28,7 @@ class PSO:
 
     # --- setup ---
 
-    def _init_population(self, bounds):
+    def _init_population(self, bounds, initial_population=None):
         """
         Example of bounds = {
             "window": (2, 200),
@@ -38,7 +38,10 @@ class PSO:
         lows  = self.param_ranges[:, 0]  # all minimums
         highs = self.param_ranges[:, 1]  # all maximums
 
-        self.candidate_solutions = lows + np.random.rand(self.pop_size, len(self.param_names)) * (highs - lows)
+        if initial_population is not None:
+            self.candidate_solutions = np.array(initial_population, dtype=float)
+        else:
+            self.candidate_solutions = lows + np.random.rand(self.pop_size, len(self.param_names)) * (highs - lows)
 
         # velocities initialised
         span = highs - lows
@@ -85,7 +88,7 @@ class PSO:
         return dict(zip(self.param_names, self.best_params))
 
     # --- main entry point ---
-    def run(self, fitness_fn, bounds):
+    def run(self, fitness_fn, bounds, initial_population=None):
         self.history = {
             "gbest_energy":   [],
             "gbest_position": [],
@@ -95,7 +98,7 @@ class PSO:
         self.param_names  = list(bounds.keys())
         self.param_ranges = np.array([bounds[k] for k in self.param_names])
 
-        self._init_population(bounds)
+        self._init_population(bounds, initial_population)
         self._evaluate_all(fitness_fn)
         self._update_personal_best()
         self._update_global_best()

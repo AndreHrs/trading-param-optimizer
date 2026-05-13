@@ -24,20 +24,21 @@ class AOS:
 
     # --- setup ---
 
-    def _init_population(self, bounds):
+    def _init_population(self, bounds, initial_population=None):
         """
         Example of bounds = {
             "window": (2, 200),
             "alpha":  (0.0, 1.0)
         }
         """
-        self.candidate_solutions = []
-
         lows  = self.param_ranges[:, 0]  # all minimums
         highs = self.param_ranges[:, 1]  # all maximums
-        
-        # Numpy equivalent for formula 2, no need for nested loops
-        self.candidate_solutions = lows + np.random.rand(self.pop_size, len(self.param_names)) * (highs - lows)
+
+        if initial_population is not None:
+            self.candidate_solutions = np.array(initial_population, dtype=float)
+        else:
+            # Numpy equivalent for formula 2, no need for nested loops
+            self.candidate_solutions = lows + np.random.rand(self.pop_size, len(self.param_names)) * (highs - lows)
 
     def _evaluate_all(self, fitness_fn):
         self.energy = np.array([fitness_fn(row) for row in self.candidate_solutions])
@@ -88,7 +89,7 @@ class AOS:
         return dict(zip(self.param_names, self.best_params))
         
     # --- main entry point ---
-    def run(self, fitness_fn, bounds):
+    def run(self, fitness_fn, bounds, initial_population=None):
         self.history = {
             "LE_energy":   [],
             "LE_position": [],
@@ -102,7 +103,7 @@ class AOS:
         # loop: assign shells, absorption/emission, update nucleus
         # populates self.best_params, self.best_fitness, self.history, self.n_evals
         # returns self.best_params
-        self._init_population(bounds)
+        self._init_population(bounds, initial_population)
         self._evaluate_all(fitness_fn)
 
         sorted_indices = np.argsort(self.energy)
