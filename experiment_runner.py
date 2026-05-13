@@ -20,7 +20,7 @@ from utilities.pin_p_cores import get_worker_count, worker_init
 # CONFIGURATIONS:
 # ===============
 RUN_RANDOM = True
-RUN_FIXED = False
+RUN_FIXED = True
 
 N_RUNS = 30
 GLOBAL_INITIAL_POPULATION_SIZE = 100
@@ -45,7 +45,6 @@ HYPERPARAMS = {
 
 
 ALGO_LIST = ["pso", "abo", "mrfo", "sos", "aos", "gps"]
-ALGO_LIST = ["pso"]
 STRATEGY_LIST = ["sma", "lma", "ema_shared", "ema_independent", "weighted"]
 
 STRATEGY_DIMS = {
