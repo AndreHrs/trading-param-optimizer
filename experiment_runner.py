@@ -4,17 +4,22 @@ Note: Currently all algorithms must start with same Initial population size due 
 on fixed populations
 """
 
+import json
 import os
+import time
 import importlib
 import numpy as np
+import pandas as pd
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 from utilities.data_loader import load_data
-from utilities.csv_exporter import append_result
+from utilities.csv_exporter import COLUMNS
+from utilities.pin_p_cores import get_worker_count, worker_init
 
 # ===============
 # CONFIGURATIONS:
 # ===============
-RUN_RANDOM = True
+RUN_RANDOM = False
 RUN_FIXED = True
 
 N_RUNS = 30
@@ -126,20 +131,51 @@ def collect_row(opt, algo, strategy, run_id, start_mode, train_prices, test_pric
         "early_stopped": getattr(opt, "early_stop", False),
     }
 
+
+# ==================
+# PARALLEL HELPERS
+# ==================
+# train_prices / test_prices are module-level globals that is inherited by forked workers without reloading.
+def _run_task(args):
+    algo, strategy, run_id, mode, initial_population, initial_position = args
+    opt = run_single(algo, strategy, train_prices,
+                     initial_population=initial_population,
+                     initial_position=initial_position)
+    return collect_row(opt, algo, strategy, run_id, mode, train_prices, test_prices, HYPERPARAMS[algo])
+
+def _run_parallel(tasks):
+    n_workers = get_worker_count()
+    total = len(tasks)
+    print(f"  Workers: {n_workers}  |  Tasks: {total}")
+    rows = []
+    with ProcessPoolExecutor(max_workers=n_workers, initializer=worker_init) as ex:
+        futures = {ex.submit(_run_task, t): t for t in tasks}
+        for i, fut in enumerate(as_completed(futures), 1):
+            t = futures[fut]
+            row = fut.result()
+            rows.append(row)
+            print(f"[{i}/{total}] {t[3]:6s} | {t[0]:4s} | {t[1]:16s} | run {t[2]}", flush=True)
+    return rows
+
+def _save_results(rows, csv_path):
+    df = pd.DataFrame(rows)
+    for col in ("equity_curve", "test_equity_curve", "best_params", "hyperparams"):
+        df[col] = df[col].apply(json.dumps)
+    df[COLUMNS].to_csv(csv_path, index=False)
+    print(f"Saved {len(df)} rows to {csv_path}")
+
+
 # ================================
 # RUNNER (RANDOM INITIALIZATION)
 # ================================
-def run_random(train_prices, test_prices):
-    total = len(ALGO_LIST) * len(STRATEGY_LIST) * N_RUNS
-    done  = 0
-    for algo in ALGO_LIST:
-        for strategy in STRATEGY_LIST:
-            for run_id in range(N_RUNS):
-                done += 1
-                print(f"[{done}/{total}] random | {algo:4s} | {strategy:16s} | run {run_id}", flush=True)
-                opt = run_single(algo, strategy, train_prices)
-                row = collect_row(opt, algo, strategy, run_id, "random", train_prices, test_prices, HYPERPARAMS[algo])
-                append_result(RANDOM_CSV, row)
+def run_random():
+    tasks = [
+        (algo, strategy, run_id, "random", None, None)
+        for algo in ALGO_LIST
+        for strategy in STRATEGY_LIST
+        for run_id in range(N_RUNS)
+    ]
+    _save_results(_run_parallel(tasks), RANDOM_CSV)
 
 
 # ================================
@@ -162,30 +198,22 @@ def generate_fixed_populations():
     print(f"Fixed populations saved to {FIXED_POP_FILE}")
     return populations
 
-def run_fixed(train_prices, test_prices):
+def run_fixed():
     if not os.path.exists(FIXED_POP_FILE):
         print("Generating fixed populations...")
         generate_fixed_populations()
 
     npz   = np.load(FIXED_POP_FILE)
-    total = len(ALGO_LIST) * len(STRATEGY_LIST) * N_RUNS
-    done  = 0
-
+    tasks = []
     for algo in ALGO_LIST:
         for strategy in STRATEGY_LIST:
             for run_id in range(N_RUNS):
-                done += 1
                 pop = npz[f"{strategy}_{run_id}"]
-                print(f"[{done}/{total}] fixed  | {algo:4s} | {strategy:16s} | run {run_id}", flush=True)
-
                 if algo == "gps":
-                    opt = run_single(algo, strategy, train_prices, initial_position=pop[0])
+                    tasks.append((algo, strategy, run_id, "fixed", None, pop[0]))
                 else:
-                    opt = run_single(algo, strategy, train_prices,
-                                     initial_population=pop)
-
-                row = collect_row(opt, algo, strategy, run_id, "fixed", train_prices, test_prices, HYPERPARAMS[algo])
-                append_result(FIXED_CSV, row)
+                    tasks.append((algo, strategy, run_id, "fixed", pop, None))
+    _save_results(_run_parallel(tasks), FIXED_CSV)
 
 
 os.makedirs(RESULTS_DIR, exist_ok=True)
@@ -193,10 +221,16 @@ train_prices, _, test_prices, _ = load_data("./data/BTC-Daily.csv")
 
 if RUN_RANDOM:
     print(f"=== Random runs ({len(ALGO_LIST)} algos x {len(STRATEGY_LIST)} strategies x {N_RUNS} runs) ===")
-    run_random(train_prices, test_prices)
+    _t_random = time.perf_counter()
+    run_random()
+    _elapsed_random = time.perf_counter() - _t_random
     print(f"Done. Results in {RANDOM_CSV}")
+    print(f"Random runs time: {_elapsed_random / 60:.1f} min ({_elapsed_random:.1f} s)")
 
 if RUN_FIXED:
     print(f"\n=== Fixed-population runs ===")
-    run_fixed(train_prices, test_prices)
+    _t_fixed = time.perf_counter()
+    run_fixed()
+    _elapsed_fixed = time.perf_counter() - _t_fixed
     print(f"Done. Results in {FIXED_CSV}")
+    print(f"Fixed runs time: {_elapsed_fixed / 60:.1f} min ({_elapsed_fixed:.1f} s)")

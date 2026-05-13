@@ -126,3 +126,20 @@ GPS is local search and the result is heavily dependant on where it start. Singl
 
 So probably I will try it later and gather result.
 
+# On multi threading:
+The total setup of experiments will run 1800 times, but all of them are independent.
+The case is embarrassingly parallel, so I will implement multi-threading.
+
+However, I have 2 devices with different CPUs. AMD Ryzen 7 9700X and Intel i9-13900H.
+This proves a little problematic with Intel CPU. Because Intel CPU have P/E core split (Performance/Efficiency core).
+Running parallel with all the cores might have skewed result if E-core is used since they have lower speed,
+hurting the runtime.
+
+*That aside, jokingly by running the multithread only on P-cores, 
+I avoided getting scewed by 100% CPU usage across all cores and having laggy PC
+rending my editor useless since I have 8 freed up E-cores.
+
+So I made utility to pin the performance cores if detected CPU is Intel and run only using it.
+This play nicely because I run linux and can probe `/sys/devices/system/cpu`.
+
+I used agentic AI to help me rewrite the code to be parallel.
