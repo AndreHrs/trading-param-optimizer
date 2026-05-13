@@ -143,3 +143,8 @@ So I made utility to pin the performance cores if detected CPU is Intel and run 
 This play nicely because I run linux and can probe `/sys/devices/system/cpu`.
 
 I used agentic AI to help me rewrite the code to be parallel.
+
+# Another multi threading issue:
+On the random Run, turns out forking multi processing made the workers share the same seed.
+This means the run is not truly random at all. Quick fix is by giving the run `np.random.seed(run_id)`
+so the random seed is different between each run_id.

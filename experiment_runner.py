@@ -19,8 +19,8 @@ from utilities.pin_p_cores import get_worker_count, worker_init
 # ===============
 # CONFIGURATIONS:
 # ===============
-RUN_RANDOM = False
-RUN_FIXED = True
+RUN_RANDOM = True
+RUN_FIXED = False
 
 N_RUNS = 30
 GLOBAL_INITIAL_POPULATION_SIZE = 100
@@ -45,6 +45,7 @@ HYPERPARAMS = {
 
 
 ALGO_LIST = ["pso", "abo", "mrfo", "sos", "aos", "gps"]
+ALGO_LIST = ["pso"]
 STRATEGY_LIST = ["sma", "lma", "ema_shared", "ema_independent", "weighted"]
 
 STRATEGY_DIMS = {
@@ -138,6 +139,7 @@ def collect_row(opt, algo, strategy, run_id, start_mode, train_prices, test_pric
 # train_prices / test_prices are module-level globals that is inherited by forked workers without reloading.
 def _run_task(args):
     algo, strategy, run_id, mode, initial_population, initial_position = args
+    np.random.seed(run_id)
     opt = run_single(algo, strategy, train_prices,
                      initial_population=initial_population,
                      initial_position=initial_position)
