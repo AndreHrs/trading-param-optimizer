@@ -1,0 +1,59 @@
+\label{sec:conclusion}
+
+Algorithm choice has a universally significant effect on training fitness
+across all strategy and initialisation conditions, yet this advantage does
+not transfer to test performance. The binding constraint appears to be
+strategy expressiveness in the face of market non-stationarity rather than
+optimiser quality: once the target regime shifts, the parameters optimised on
+training data no longer generalise regardless of how effectively they were found.
+
+AOS performs comparably to PSO despite lacking personal best memory. On this
+multimodal fitness landscape, global best guidance via nucleus tracking
+combined with shell-based population distribution appears sufficient; the
+additional per-particle history that PSO maintains provides no statistically
+significant advantage. This is a finding specific to the problem structure
+--- the MA crossover landscape may not present the kind of elongated,
+directional ridges where personal memory typically helps.
+
+GPS confirms that population diversity is necessary. Single-state local
+search is consistently and significantly worse than every population-based
+method across all conditions. The MA parameter landscape contains enough
+local optima that a deterministic pattern search from a fixed starting point
+cannot reliably reach high-fitness regions, establishing population-based
+global search as a structural requirement rather than an optional improvement.
+
+SOS's three-evaluation-per-iteration cost is not justified by its performance
+differential over PSO. Because Dunn's test establishes distributional
+equivalence between PSO and SOS on training fitness under matched-iteration
+budgets, the threefold evaluation overhead buys no statistical advantage. A
+compute-normalised comparison equalising total fitness evaluations rather
+than iterations would be required to confirm this quantitatively, but the
+direction of the finding is clear.
+
+Independent $\alpha$ in \texttt{ema\_independent} provides genuinely greater
+expressiveness than the shared-$\alpha$ \texttt{ema\_shared} configuration.
+The expanded search space produces more pronounced inter-algorithm
+differences (higher Kruskal-Wallis $H$-statistics), indicating that the
+additional degrees of freedom challenge the optimisers' exploration
+capabilities in a way that better reveals their structural differences.
+
+The LE degradation in AOS is an empirically observed phenomenon. The
+lowest-energy electron's role as a local-optima escape mechanism degrades as
+the nucleus shifts across iterations and other electrons improve, because the
+LE designation tracks relative ranking within the current population rather
+than an absolute landscape property. This is a genuine weakness in the
+paper's formulation that warrants further investigation.
+
+The no-trade degenerate optimum is an unpenalised artifact of using raw final
+cash as the fitness metric. A risk-adjusted metric such as the Sharpe ratio
+or return-per-trade would penalise conservative non-trading behaviour and
+remove this fixed point from the feasible optima.
+
+\paragraph*{\textbf{Outlook}}
+Future work should adopt risk-adjusted fitness functions and regime-aware
+train/test splits that better reflect the non-stationarity of cryptocurrency
+markets. The train/test divergence observed here suggests the evaluation
+objective itself may require redesign: objectives that penalise in-sample
+overfitting --- for example, through cross-validated segment fitness or
+walk-forward testing --- would impose generalisation pressure that the
+current segment-average fitness does not provide.

@@ -1,0 +1,54 @@
+\label{sec:alg_overview}
+
+Six optimisation algorithms were evaluated across all experimental
+configurations, spanning four structural categories: swarm-based,
+physics-inspired, ecosystem-inspired, and classical local search.
+
+Particle Swarm Optimization, originally proposed by Kennedy and
+Eberhart~\cite{kennedy1995} and extended with an inertia weight by Shi and
+Eberhart~\cite{shi1998}, is a swarm method in which each particle maintains
+both a personal best position and a shared global best. The inertia weight
+$w$ governs the balance between exploration and exploitation through the
+velocity update rule. Atomic Orbital Search (AOS)~\cite{azizi2021} is a
+physics-inspired method detailed in Section~\ref{sec:algo_select}; it employs
+shell-based clustering around a nucleus (global best) as its primary
+exploration mechanism, without per-agent personal memory. African Buffalo
+Optimization (ABO)~\cite{odili2015} encodes two herd vocalisations --- an
+exploratory foraging call and an exploitative regrouping call --- and like
+PSO retains both personal and global best positions. Manta Ray Foraging
+Optimization (MRFO)~\cite{zhao2020mrfo} models three foraging behaviours
+(chain, cyclone, and somersault foraging) but maintains only a global best,
+with no per-agent memory. Symbiotic Organisms Search (SOS)~\cite{cheng2014}
+simulates mutualistic, commensal, and parasitic ecological interactions,
+applying all three phases to every organism per iteration; this yields three
+fitness evaluations per organism per iteration and requires no
+algorithm-specific hyperparameters. Generalized Pattern Search
+(GPS)~\cite{torczon1997} is a classical single-state local optimiser that
+evaluates a fixed pattern of directions from the current best solution, with
+no population and no historical memory beyond the current position; it serves
+as a deliberate baseline to quantify the value of population-based diversity.
+
+Table~\ref{tab:alg_summary} summarises the distinguishing characteristics of
+each algorithm.
+
+%TC:ignore
+\begin{table}[H]
+  \caption{\label{tab:alg_summary}%
+    Summary of the six optimisation algorithms evaluated. Memory column
+    describes which historical positions are retained per agent. Eval/iter
+  denotes fitness evaluations per agent per iteration.}
+  \begin{ruledtabular}
+    \begin{tabular}{lcllcc}
+      Algorithm & Year & Category     & Population-based & Memory
+      & Eval/iter \\
+      \hline
+      AOS       & 2021 & Physics      & Yes              & Global (nucleus)     & 1 \\
+      PSO       & 1998 & Swarm        & Yes              & Personal + Global    & 1 \\
+      MRFO      & 2020 & Swarm        & Yes              & Global only          & 1 \\
+      SOS       & 2014 & Ecosystem    & Yes              & Global only          & 3 \\
+      ABO       & 2015 & Swarm        & Yes              & Personal + Global    & 1 \\
+      GPS       & ---  & Local search & No               & Current best only    & 1 \\
+    \end{tabular}
+  \end{ruledtabular}
+\end{table}
+%TC:endignore

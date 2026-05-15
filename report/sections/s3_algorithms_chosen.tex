@@ -1,0 +1,90 @@
+\label{sec:algo_select}
+
+All six algorithms described in Section~\ref{sec:alg_overview} were
+evaluated. This section explains the rationale behind each inclusion and
+details the primary algorithm, AOS.
+
+\textit{GPS as a deliberate baseline.} The central empirical question is
+whether population-based global search is necessary on a moving-average (MA)
+parameter fitness landscape, or whether a single-state local optimiser is
+sufficient. GPS~\cite{torczon1997} has no population, no escape mechanism
+from local optima, and no memory of previously evaluated positions beyond the
+current best. Including it provides a direct lower bound: if GPS performs
+competitively, population diversity contributes little; if GPS underperforms
+consistently, the landscape demands it.
+
+\textit{PSO as a population-based benchmark.} PSO~\cite{shi1998} is one of
+the most extensively studied metaheuristics and provides a reliable
+population-based performance reference. It is also structurally related to
+AOS --- both use a global nucleus/best to guide the population --- making a
+paired comparison directly informative about the contribution of personal
+best memory. If AOS and PSO are statistically indistinguishable, per-particle
+historical memory may or may not add marginal benefit in this problem domain.
+
+\textit{AOS as the physics based algorithm compared to the others being 
+biology based.} The MA parameter fitness landscape is
+expected to be multimodal: distinct parameter combinations can produce
+similar short-term profits through qualitatively different mechanisms,
+creating multiple local peaks of comparable height. AOS~\cite{azizi2021} was
+selected because its shell-based population structure explicitly supports
+simultaneous exploitation of multiple landscape regions. Candidate solutions
+(electrons) are assigned to concentric shells around the nucleus (current
+global best) according to their fitness rank; electrons in inner shells
+exploit promising regions while outer-shell electrons conduct broader
+exploration. Transitions between shells are governed by a quantum-mechanical
+photon absorption and emission analogy: an electron absorbs energy (moves to
+an outer shell, exploration) when its transition energy falls below the
+shell's binding energy, and emits energy (moves to an inner shell,
+exploitation) otherwise. This structured push-pull between shells provides
+more persistent population spread than PSO's convergent swarm behaviour,
+which collapses toward the global best over time. AOS was published in 2021
+and has not, to our knowledge, been applied to financial parameter
+optimisation in the literature.
+
+The pseudocode below summarises the core AOS iteration:
+
+%TC:ignore
+\begin{lstlisting}[basicstyle=\small\ttfamily, breaklines=true, columns=fullflexible, keepspaces=true, frame=single, xleftmargin=1.5em, xrightmargin=1em]
+Initialise N electrons randomly in the search space
+Set nucleus := position of the best electron (highest fitness)
+Assign electrons to K shells by fitness rank (binding energy)
+
+FOR each iteration t = 1, 2, ..., T:
+    FOR each shell k = 1, ..., K:
+        Compute shell binding energy E_k
+        FOR each electron i in shell k:
+            Sample transition energy E
+            IF E < E_k  (electron absorbs energy):
+                Move to outer shell; apply exploration step
+            ELSE  (electron emits energy):
+                Move to inner shell; apply exploitation step
+            Update position via quantum transition equation
+            Evaluate fitness of new position
+    Apply LE perturbation: randomly displace the
+        lowest-energy electron to escape local optima
+    Update nucleus if any electron improves best fitness
+
+RETURN nucleus position as best solution found
+\end{lstlisting}
+%TC:endignore
+
+\textit{LE degradation --- an observed weakness.} The Lowest Energy (LE)
+perturbation step is designed to prevent stagnation by randomly displacing
+the electron with the worst fitness. In practice, the LE designation is not
+stable: as other electrons improve their fitness across iterations, the
+electron currently labelled LE may no longer occupy the position most in need
+of escape relative to the updated nucleus. The original
+paper~\cite{azizi2021} does not address this drift. This was observed
+empirically across runs and is logged per iteration; it is documented here
+rather than patched, as any correction would constitute a modification to the
+published algorithm.
+
+\textit{Metaparameter choices.} Population size was scaled with
+dimensionality --- larger populations were used for the $d=14$ weighted
+strategy to partially offset the curse of dimensionality. The shell count
+$n_\text{shells}$ is implemented as an upper cap rather than a fixed
+assignment: each iteration uses $\min(n_\text{shells}, |\text{remaining
+population}|)$ shells to prevent degenerate empty-shell states that can arise
+in high-dimensional runs where effective population diversity is reduced. The
+iteration budget was fixed uniformly across all six algorithms to ensure a
+controlled comparison of per-iteration effectiveness.

@@ -1,0 +1,50 @@
+\label{sec:experiments}
+
+\subsection{Dataset}
+
+Daily BTC/USD OHLCV data sourced from Kaggle spanning 2014 to 2022 was used.
+The training set covers the pre-2020 period (approximately 2014--2019) and
+the test set covers 2020--2022. The split was not chosen arbitrarily:
+post-2020 data encompasses the COVID-19 market crash of March 2020, the 2021
+bull run, and the 2022 bear market, constituting three qualitatively distinct
+market regimes. This is an intentional out-of-distribution stress test rather
+than a random holdout. Its purpose is to measure whether parameter
+configurations optimised on one regime generalise when the underlying market
+dynamics shift substantially --- a more meaningful evaluation of strategy
+robustness than a matched-regime random split would provide.
+
+\subsection{Experimental Design}
+
+The full factorial design comprised 6~algorithms $\times$ 5~strategies
+$\times$ 2~initialisation modes $\times$ 30~runs = 1800~total trials. Two
+initialisation modes were tested: fixed initialisation, in which all runs
+begin from a deterministic seed position, and random initialisation, in which
+each run begins from a position drawn uniformly at random from the search
+space. The paired comparison of fixed versus random initialisation tests
+sensitivity to starting conditions. Strong dependence on initialisation would
+indicate algorithmic fragility, with convergence driven by the seed rather
+than by the search mechanism. A run count of 30 was chosen as a practical
+compromise between statistical power and the total computational cost of 1800
+trials; it is sufficient to apply non-parametric distributional tests but
+modest relative to what would be preferred for high-variance optimisers.
+
+\subsection{Statistical Analysis}
+
+The Kruskal-Wallis $H$-test was used in preference to one-way ANOVA because
+the structural properties of optimiser output systematically violate the
+normality assumption required by ANOVA. Optimisers can produce runs that
+converge to the degenerate no-trade optimum (fitness near \$1000, the
+starting balance), occasional jackpot runs that far exceed the typical
+distribution, and heavy-tailed spread in between. These outliers are not
+noise --- they reflect real behavioural modes of the algorithms --- and would
+distort ANOVA $F$-statistics. Kruskal-Wallis operates on ranks and is robust
+to such distributional shapes.
+
+For each of the ten strategy $\times$ initialisation mode combinations, the
+Kruskal-Wallis test was applied with algorithm as the factor variable,
+holding strategy and initialisation constant. This isolates the algorithm
+effect from strategy-level confounds: testing across all strategies
+simultaneously would conflate the variance introduced by different fitness
+landscape shapes with the variance attributable to algorithmic differences.
+Pairwise post-hoc comparisons used Dunn's test with Bonferroni correction. A
+significance threshold of $\alpha = 0.05$ was applied throughout.

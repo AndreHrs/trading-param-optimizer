@@ -1,18 +1,178 @@
-\documentclass{article}
-\usepackage{graphicx} % Required for inserting images
-\usepackage[utf8]{inputenc}
-\usepackage{textgreek}
-\usepackage{multicol}
-\usepackage{geometry}
- \geometry{
- a4paper,
- total={170mm,257mm},
- left=20mm,
- top=20mm,
- }
+% ****** Start of file apssamp.tex ******
+%
+%   This file is part of the APS files in the REVTeX 4.2 distribution.
+%   Version 4.2a of REVTeX, December 2014
+%
+%   Copyright (c) 2014 The American Physical Society.
+%
+%   See the REVTeX 4 README file for restrictions and more information.
+%
+% TeX'ing this file requires that you have AMS-LaTeX 2.0 installed
+% as well as the rest of the prerequisites for REVTeX 4.2
+%
+% See the REVTeX 4 README file
+% It also requires running BibTeX. The commands are as follows:
+%
+%  1)  latex apssamp.tex
+%  2)  bibtex apssamp
+%  3)  latex apssamp.tex
+%  4)  latex apssamp.tex
+%
+\documentclass[%
+  reprint,
+  %superscriptaddress,
+  %groupedaddress,
+  %unsortedaddress,
+  %runinaddress,
+  %frontmatterverbose,
+  %preprint,
+  %preprintnumbers,
+  %nofootinbib,
+  %nobibnotes,
+  bibnotes,
+  amsmath,amssymb,
+  aps,
+  pra,
+  %prb,
+  %rmp,
+  %prstab,
+  %prstper,
+  %floatfix,
+  onecolumn
+]{revtex4-2}
+
+\usepackage{verbatim} % for wordcount
+% tell word count to ignore affiliation
+%TC:macro \affiliation [0]
+%TC:macro \caption [0]
+%TC:macro \label [0]
+
+\usepackage{graphicx}% Include figure files
+\usepackage{dcolumn}% Align table columns on decimal point
+\usepackage{bm}% bold math
+\usepackage{siunitx}
+\usepackage{tabularx}
+\usepackage{makecell}
+\usepackage{placeins}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{float}
+\renewcommand\cellalign{tl}
+% \usepackage{cite}
+%\usepackage{hyperref}% add hypertext capabilities
+%\usepackage[mathlines]{lineno}% Enable numbering of text and display math
+%\linenumbers\relax % Commence numbering lines
+
+%\usepackage[showframe,%Uncomment any one of the following lines to test
+%%scale=0.7, marginratio={1:1, 2:3}, ignoreall,% default settings
+%%text={7in,10in},centering,
+%%margin=1.5in,
+%%total={6.5in,8.75in}, top=1.2in, left=0.9in, includefoot,
+%%height=10in,a5paper,hmargin={3cm,0.8in},
+%]{geometry}
+
+%% You can pass in your own texcount params, e.g. -chinese to turn on Chinese
+% mode, or -char to do a character count instead (which does NOT include spaces!)
+%%% http://app.uio.no/ifi/texcount/documentation.html
+
+%% To include references. DO NOT USE WITH BIBLATEX
+%TC:incbib
+
+%% To include tabulars in main text count.
+%TC:group table 0 1
+%TC:group tabular 1 1
+
+\newcommand{\detailtexcount}[1]{%
+  \immediate\write18{texcount -merge -sum #1.tex > #1.wcdetail }%
+  \verbatiminput{#1.wcdetail}%
+}
+
+% Counts : text words, header words
+%  Does not count : caption words, #headers, #floats, #inlined formulae,
+% #displayed formulae
+\newcommand{\quickwordcount}[1]{%
+  \immediate\write18{texcount -1 -sum=1,1,0,0,0,0,0 -brief -merge -inc -q
+  -relaxed #1.tex | sed "s/ (errors:[0-9]*)//" > #1-words.sum }%
+  \input{#1-words.sum} words%
+}
+
+% Use %TC:ignore & %TC:endignore around sections that should not contribute
+% to the word count
+
+%   -sum, -sum=   Make sum of all word and equation counts.
+%     May also use -sum=#[,#] with up to 7 numbers to indicate how each of the
+%       counts:
+%         (text words, header words, caption words, #headers, #floats, #inlined
+%            formulae, #displayed formulae)
+%       are summed.
+%     The default sum (if only -sum is used) is the same as -sum=1,1,1,0,0,1,1.
 
 \begin{document}
 
-\section{Placeholder }
-Placeholder, unknown yet whether report will be in md or latex or docx
+\preprint{APS/123-QED}
+
+%TC:ignore
+%Use the template of a scientific journal; AIP Journal style or IOP style
+\title{CITS4404 Project | Building AI Trading Bots: \\ Nature-Inspired
+Optimisation Algorithms Implementation and Experimentation, and Evaluation}%
+% Force line breaks with \\
+
+\author{Name (ID)}
+\author{Name (ID)}%
+\affiliation{Department of Computer Science, University of Western Australia,
+35 Stirling Hwy, Crawley 6009, WA}
+
+\date{\today}% It is always \today, today,
+%  but any date may be explicitly specified
+%TC:endignore
+
+\begin{abstract}
+  % maximum of 3000 words excluding diagrams and references (also excludes
+  % itself and above words)
+  %TC:ignore
+  \begin{center}
+    \quickwordcount{report}
+  \end{center}
+  %TC:endignore
+\end{abstract}
+
+%\keywords{Suggested keywords}%Use showkeys class option if keyword
+%display desired
+\maketitle
+
+%\tableofcontents
+
+\section{Algorithms Investigated}
+\input{sections/s1_algorithms_brief}
+
+\section{Bot Design and Parametrisation}
+\input{sections/s2_bot_design}
+
+\section{Algorithm Selection}
+\input{sections/s3_algorithms_chosen}
+
+\section{Experiments and Evaluation}
+\input{sections/s4_experiments_evaluation}
+
+\section{Results and Analysis}
+\input{sections/s5_results}
+
+\section{Conclusion}
+\input{sections/s6_conclusions}
+
+%TC:ignore
+\bibliographystyle{ieeetr}
+\bibliography{apssamp}
+
+% The \nocite command causes all entries in a bibliography to be printed out
+% whether or not they are actually referenced in the text. This is appropriate
+% for the sample file to show the different styles of references, but authors
+% most likely will not want to use it.
+\nocite{*}
+
+% Produces the bibliography via BibTeX.
+%TC:endignore
+
 \end{document}
+%
+% ****** End of file apssamp.tex ******
