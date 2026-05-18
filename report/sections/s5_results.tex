@@ -322,6 +322,72 @@ descriptiveness-versus-search-space trade-off realised empirically: higher
 expressiveness produced higher training fitness ($\$100{,}000{+}$ medians on
 \texttt{ema\_shared}) but transferred no useful information to held-out test data.
 
+\subsection{Which Algorithm Performs Best}
+\begin{table}[ht]
+\centering
+\caption{\label{tab:algo_performance_fixed_cv}%
+Updated statistical summary of performance metrics sorted by strategy configuration and 
+coefficient of variation (CV) under the \texttt{fixed} start mode across 30 runs per cell.}
+\small % Slightly smaller font to fit within page margins cleanly
+\begin{tabular}{llrrrrrrrr}
+\toprule
+\textbf{Algo} & \textbf{Strategy} & \textbf{Count} & \textbf{Mean} & \textbf{Std} & \textbf{CV} & \textbf{Var} & \textbf{Min} & \textbf{Median} & \textbf{Max} \\
+\midrule
+mrfo & ema\_independent & 30 & $1{,}000.0000$ & $0.0000$ & $0.0000$ & $0.0000$ & $1{,}000.0000$ & $1{,}000.0000$ & $1{,}000.0000$ \\
+aos  & ema\_independent & 30 & $4{,}271.8511$ & $1{,}401.7027$ & $0.3281$ & $1{,}964{,}770.5024$ & $977.9262$ & $4{,}425.3908$ & $7{,}478.4555$ \\
+sos  & ema\_independent & 30 & $3{,}805.2664$ & $1{,}285.2927$ & $0.3378$ & $1{,}651{,}977.3254$ & $1{,}206.8093$ & $4{,}296.9697$ & $4{,}834.2114$ \\
+pso  & ema\_independent & 30 & $3{,}219.7871$ & $1{,}460.6491$ & $0.4536$ & $2{,}133{,}495.7079$ & $1{,}201.2297$ & $4{,}296.9697$ & $4{,}565.8008$ \\
+abo  & ema\_independent & 30 & $1{,}482.4498$ & $994.6911$ & $0.6710$ & $989{,}410.4156$ & $858.1458$ & $1{,}202.4195$ & $4{,}360.9038$ \\
+gps  & ema\_independent & 30 & $2{,}328.6670$ & $1{,}619.2726$ & $0.6954$ & $2{,}622{,}043.6733$ & $509.7981$ & $1{,}588.7568$ & $5{,}684.3164$ \\
+\midrule
+aos  & ema\_shared      & 30 & $1{,}894.0325$ & $1{,}269.0238$ & $0.6700$ & $1{,}610{,}421.4700$ & $603.2835$ & $1{,}137.1210$ & $4{,}377.1504$ \\
+sos  & ema\_shared      & 30 & $2{,}237.5683$ & $1{,}698.3336$ & $0.7590$ & $2{,}884{,}337.1312$ & $617.0044$ & $1{,}862.0257$ & $7{,}142.0901$ \\
+abo  & ema\_shared      & 30 & $1{,}815.8120$ & $1{,}391.7397$ & $0.7665$ & $1{,}936{,}939.2930$ & $633.3265$ & $1{,}157.6009$ & $6{,}138.8757$ \\
+gps  & ema\_shared      & 30 & $1{,}831.8888$ & $1{,}465.6274$ & $0.8001$ & $2{,}148{,}063.7275$ & $462.4916$ & $1{,}000.0000$ & $4{,}584.5951$ \\
+mrfo & ema\_shared      & 30 & $1{,}606.1015$ & $1{,}366.8988$ & $0.8511$ & $1{,}868{,}412.3809$ & $484.1837$ & $1{,}000.0000$ & $5{,}660.2632$ \\
+pso  & ema\_shared      & 30 & $2{,}468.1415$ & $2{,}176.0318$ & $0.8816$ & $4{,}735{,}114.2306$ & $824.6249$ & $1{,}000.0000$ & $10{,}074.6391$ \\
+\midrule
+sos  & lma             & 30 & $907.9777$ & $0.0000$ & $0.0000$ & $0.0000$ & $907.9777$ & $907.9777$ & $907.9777$ \\
+aos  & lma             & 30 & $794.0966$ & $176.2895$ & $0.2220$ & $31{,}077.9891$ & $485.4056$ & $907.9777$ & $921.2818$ \\
+pso  & lma             & 30 & $587.2506$ & $135.8814$ & $0.2314$ & $18{,}463.7669$ & $487.7403$ & $487.7403$ & $907.9777$ \\
+gps  & lma             & 30 & $879.1397$ & $221.1375$ & $0.2515$ & $48{,}901.8002$ & $378.9697$ & $942.9760$ & $1{,}228.5388$ \\
+mrfo & lma             & 30 & $749.9327$ & $200.3511$ & $0.2672$ & $40{,}140.5782$ & $487.7403$ & $907.9777$ & $907.9777$ \\
+abo  & lma             & 30 & $683.1384$ & $187.4051$ & $0.2743$ & $35{,}120.6796$ & $487.7403$ & $671.5093$ & $907.9777$ \\
+\midrule
+mrfo & sma             & 30 & $1{,}180.2757$ & $0.0000$ & $0.0000$ & $0.0000$ & $1{,}180.2757$ & $1{,}180.2757$ & $1{,}180.2757$ \\
+sos  & sma             & 30 & $1{,}180.2757$ & $0.0000$ & $0.0000$ & $0.0000$ & $1{,}180.2757$ & $1{,}180.2757$ & $1{,}180.2757$ \\
+abo  & sma             & 30 & $1{,}172.2460$ & $12.4752$ & $0.0106$ & $155.6317$ & $1{,}153.5101$ & $1{,}180.2757$ & $1{,}180.2757$ \\
+aos  & sma             & 30 & $1{,}172.2460$ & $12.4752$ & $0.0106$ & $155.6317$ & $1{,}153.5101$ & $1{,}180.2757$ & $1{,}180.2757$ \\
+pso  & sma             & 30 & $1{,}129.0634$ & $142.7064$ & $0.1264$ & $20{,}365.1027$ & $617.3679$ & $1{,}180.2757$ & $1{,}180.2757$ \\
+gps  & sma             & 30 & $1{,}154.9955$ & $216.3662$ & $0.1873$ & $46{,}814.3537$ & $725.7645$ & $1{,}104.1544$ & $1{,}740.1289$ \\
+\midrule
+pso  & weighted        & 30 & $4{,}813.3528$ & $460.0434$ & $0.0956$ & $211{,}639.9732$ & $3{,}637.1189$ & $4{,}729.4264$ & $5{,}564.7885$ \\
+sos  & weighted        & 30 & $4{,}580.5727$ & $477.9724$ & $0.1043$ & $228{,}457.5786$ & $2{,}050.8875$ & $4{,}660.9005$ & $4{,}694.2637$ \\
+abo  & weighted        & 30 & $4{,}451.6966$ & $817.0929$ & $0.1835$ & $667{,}640.8260$ & $1{,}130.4039$ & $4{,}651.6147$ & $5{,}691.0070$ \\
+aos  & weighted        & 30 & $4{,}465.4214$ & $830.2398$ & $0.1859$ & $689{,}298.1441$ & $1{,}000.0000$ & $4{,}676.3205$ & $5{,}500.0430$ \\
+mrfo & weighted        & 30 & $4{,}329.0829$ & $1{,}145.6547$ & $0.2646$ & $1{,}312{,}524.6257$ & $1{,}381.9554$ & $4{,}694.2197$ & $5{,}644.1051$ \\
+gps  & weighted        & 30 & $2{,}904.4636$ & $1{,}852.4269$ & $0.6378$ & $3{,}431{,}485.2697$ & $370.9620$ & $3{,}688.6018$ & $5{,}093.2604$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Across fixed-initialisation test results as per table \ref{tab:algo_performance_fixed_cv}, no algorithm demonstrated
+consistent dominance. PSO and SOS produced the strongest combination of
+median performance and stability on \texttt{weighted}
+(PSO: median $= \$4{,}729$, $\textrm{CV} = 0.095$;
+SOS: median $= \$4{,}661$, $\textrm{CV} = 0.104$),
+while AOS and SOS led on \texttt{ema\_independent}
+(AOS median $= \$4{,}425$; SOS median $= \$4{,}297$).
+Apparent stability on \texttt{sma} and \texttt{lma}
+(MRFO, SOS: $\textrm{CV} = 0.000$) reflects convergence
+to degenerate fixed points rather than reliable optimisation ---
+zero variance indicates collapse, not robustness.
+This strategy-dependence of relative algorithm performance
+is consistent with the No Free Lunch theorem~\cite{wolpert1997}:
+no algorithm dominates uniformly across fitness landscapes,
+and the landscape structure --- determined by strategy choice ---
+matters more than algorithm choice in this experimental setting.
+
 \subsection{Interpretation}
 
 Two non-exclusive explanations account for the failure of training fitness to
