@@ -75,12 +75,12 @@ events in their difference using a two-point weighted kernel:
   This effectively collapses the degree of freedom to approximately 2.5
   effective dimensions in practice.
 
-  \textit{Strategy 4 --- EMA with independent $\alpha$ ($d=7$).} Short span,
+  \textit{Strategy 4 --- EMA with independent $\alpha$ ($d=4$).} Short span,
   long span, $\alpha_\mathrm{short}$, and $\alpha_\mathrm{long}$ are each
   optimised independently, along with additional EMA window parameters.
   Decoupling the smoothing parameters gives the short-term EMA its own
   reactivity and the long-term EMA its own stability, restoring the frequency
-  contrast that shared $\alpha$ eliminates. The expanded search space ($d=7$
+  contrast that shared $\alpha$ eliminates. The expanded search space ($d=4$
   versus $d=3$) carries a higher exploration cost but provides genuinely
   greater expressiveness: the two EMAs can now operate at qualitatively
   different timescales simultaneously. Empirically, this configuration
