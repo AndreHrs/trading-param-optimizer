@@ -24,7 +24,9 @@ class ABO:
     best found so far is preserved.
     """
 
-    def __init__(self, pop_size, max_iterations, lp1=0.5, lp2=0.5, stagnation_limit=10):
+    def __init__(self, pop_size, max_iterations, lp1=0.5, lp2=0.5, stagnation_limit=10, seed=None):
+        if seed is not None:
+            np.random.seed(seed)
         self.pop_size = pop_size
         self.max_iterations = max_iterations
         self.lp1 = lp1

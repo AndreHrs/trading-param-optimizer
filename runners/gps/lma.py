@@ -1,30 +1,14 @@
 from optimizer.gps import GPS
 from optimizer.evaluator import evaluate
-from utilities.filters import wma, lma_filter
-
-BOUNDS = {
-    "short_window": (2, 50),
-    "long_window":  (51, 200),
-}
+from runners.shared import BOUNDS_LMA as BOUNDS, get_signals_lma as get_signals, _lma_signals
 
 
-def get_signals(best_params, prices):
-    short_n = int(round(best_params["short_window"]))
-    long_n  = int(round(best_params["long_window"]))
-    short = wma(prices, short_n, lma_filter(short_n))
-    long  = wma(prices, long_n,  lma_filter(long_n))
-    return short, long
-
-
-def run(prices, initial_step_size=1, tolerance=1e-5, decay_rate=0.5, max_iterations=50, D=[], initial_position=None):
+def run(prices, initial_step_size=1, tolerance=1e-5, decay_rate=0.5, max_iterations=50, D=[], seed=None, initial_position=None):
     def fitness(candidate):
-        short_n = int(round(candidate[0]))
-        long_n  = int(round(candidate[1]))
-        short = wma(prices, short_n, lma_filter(short_n))
-        long  = wma(prices, long_n,  lma_filter(long_n))
+        short, long = _lma_signals(prices, candidate[0], candidate[1])
         cash, *_ = evaluate(prices, short, long)
         return cash
 
-    gps = GPS(initial_step_size, tolerance, decay_rate, max_iterations)
+    gps = GPS(initial_step_size, tolerance, decay_rate, max_iterations, seed=seed)
     gps.run(fitness, D=D, bounds=BOUNDS, initial_position=initial_position)
     return gps

@@ -3,7 +3,10 @@ import random
 import time
 class AOS:
 
-    def __init__(self, pop_size, max_iterations, n_shells, photon_rate=0.5, patience=50):
+    def __init__(self, pop_size, max_iterations, n_shells, photon_rate=0.5, patience=50, seed=None):
+        if seed is not None:
+            np.random.seed(seed)
+            random.seed(seed)
         # hyperparameters
         self.candidate_solutions = []
         self.param_ranges =[]

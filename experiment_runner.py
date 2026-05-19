@@ -30,8 +30,8 @@ FIXED_CSV = os.path.join(RESULTS_DIR, "fixed_runs.csv")
 FIXED_POP_FILE = os.path.join(RESULTS_DIR, "fixed_populations.npz")
 
 HYPERPARAMS = {
-    "pso":  {"pop_size": GLOBAL_INITIAL_POPULATION_SIZE, 
-                "max_iter": 50, "w_max": 0.9, "w_min": 0.4, "c1": 2, "c2": 2},
+    "pso":  {"pop_size": GLOBAL_INITIAL_POPULATION_SIZE,
+                "max_iter": 50, "w_max": 0.9, "w_min": 0.4, "c1": 2, "c2": 2, "max_vel_frac": 0.1},
     "abo":  {"pop_size": GLOBAL_INITIAL_POPULATION_SIZE, 
                 "max_iter": 50, "lp1": 0.5,   "lp2": 0.5,   "stagnation_limit": 10},
     "mrfo": {"pop_size": GLOBAL_INITIAL_POPULATION_SIZE, 
@@ -57,7 +57,7 @@ STRATEGY_DIMS = {
 
 # Hyperparams keys passed directly as kwargs to each algo run function.
 PASS_THROUGH_KWARGS = {
-    "pso": ["pop_size", "max_iter", "w_max", "w_min", "c1", "c2"],
+    "pso": ["pop_size", "max_iter", "w_max", "w_min", "c1", "c2", "max_vel_frac"],
     "abo": ["pop_size", "max_iter", "lp1", "lp2"],
     "mrfo": ["pop_size", "max_iter"],
     "sos": ["pop_size", "max_iter"],
@@ -91,10 +91,12 @@ def make_gps_directions(n_dims):
     eye = np.eye(n_dims)
     return list(eye) + list(-eye)
 
-def run_single(algo, strategy, prices, hp_override=None, initial_population=None, initial_position=None):
+def run_single(algo, strategy, prices, hp_override=None, initial_population=None, initial_position=None, seed=None):
     _, run_fn, _, _ = _get_runner(algo, strategy)
     hp     = {**HYPERPARAMS[algo], **(hp_override or {})}
     kwargs = {k: hp[k] for k in PASS_THROUGH_KWARGS[algo] if k in hp}
+    if seed is not None:
+        kwargs["seed"] = seed
 
     if algo == "mrfo" and "somersault_range" in hp:
         kwargs["somersault"] = hp["somersault_range"]
@@ -138,10 +140,10 @@ def collect_row(opt, algo, strategy, run_id, start_mode, train_prices, test_pric
 # train_prices / test_prices are module-level globals that is inherited by forked workers without reloading.
 def _run_task(args):
     algo, strategy, run_id, mode, initial_population, initial_position = args
-    np.random.seed(run_id)
     opt = run_single(algo, strategy, train_prices,
                      initial_population=initial_population,
-                     initial_position=initial_position)
+                     initial_position=initial_position,
+                     seed=run_id)
     return collect_row(opt, algo, strategy, run_id, mode, train_prices, test_prices, HYPERPARAMS[algo])
 
 def _run_parallel(tasks):

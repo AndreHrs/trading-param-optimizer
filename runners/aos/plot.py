@@ -11,7 +11,7 @@ def plot_equity_and_purchases(aos, prices, short_signal, long_signal, buy_at, se
         ax_left.set_xlabel("Time")
         ax_left.set_ylabel("Portfolio Value")
     else:
-        if("gbest_energy" in aos.history.keys()):
+        if "gbest_energy" in aos.history.keys():
             energy_history = aos.history["gbest_energy"]
         else:
             energy_history = aos.history["LE_energy"]
