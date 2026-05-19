@@ -22,7 +22,7 @@ from utilities.pin_p_cores import get_worker_count, worker_init
 RUN_RANDOM = True
 RUN_FIXED = True
 
-N_RUNS = 30
+N_RUNS = 50
 GLOBAL_INITIAL_POPULATION_SIZE = 100
 RESULTS_DIR = "results"
 RANDOM_CSV = os.path.join(RESULTS_DIR, "random_runs.csv")
