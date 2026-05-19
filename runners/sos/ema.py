@@ -9,23 +9,23 @@ from runners.shared import (
 )
 
 
-def run_shared(prices, pop_size=100, max_iter=50, initial_population=None):
+def run_shared(prices, pop_size=100, max_iter=50, seed=None, initial_population=None):
     def fitness(candidate):
         short, long = _ema_signals_shared(prices, candidate[0], candidate[1], candidate[2])
         cash, *_ = evaluate(prices, short, long)
         return -cash
 
-    sos = SOS(pop_size, max_iter)
+    sos = SOS(pop_size, max_iter, seed=seed)
     sos.run(fitness, bounds=BOUNDS_SHARED, initial_population=initial_population)
     return sos
 
 
-def run_independent(prices, pop_size=100, max_iter=50, initial_population=None):
+def run_independent(prices, pop_size=100, max_iter=50, seed=None, initial_population=None):
     def fitness(candidate):
         short, long = _ema_signals_independent(prices, candidate[0], candidate[1], candidate[2], candidate[3])
         cash, *_ = evaluate(prices, short, long)
         return -cash
 
-    sos = SOS(pop_size, max_iter)
+    sos = SOS(pop_size, max_iter, seed=seed)
     sos.run(fitness, bounds=BOUNDS_INDEPENDENT, initial_population=initial_population)
     return sos

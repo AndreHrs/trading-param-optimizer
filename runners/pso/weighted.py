@@ -3,7 +3,7 @@ from optimizer.evaluator import evaluate
 from runners.shared import BOUNDS_WEIGHTED as BOUNDS, get_signals_weighted as get_signals, _weighted_signal
 
 
-def run(prices, pop_size=100, max_iter=50, w_max=0.9, w_min=0.4, c1=2, c2=2, max_vel_frac=0.1, initial_population=None):
+def run(prices, pop_size=100, max_iter=50, w_max=0.9, w_min=0.4, c1=2, c2=2, max_vel_frac=0.1, seed=None, initial_population=None):
     def fitness(candidate):
         high = _weighted_signal(
             prices,
@@ -20,6 +20,6 @@ def run(prices, pop_size=100, max_iter=50, w_max=0.9, w_min=0.4, c1=2, c2=2, max
         cash, *_ = evaluate(prices, high, low)
         return -cash
 
-    pso = PSO(pop_size, max_iter, w_max, w_min, c1, c2, max_vel_frac)
+    pso = PSO(pop_size, max_iter, w_max, w_min, c1, c2, max_vel_frac, seed=seed)
     pso.run(fitness, bounds=BOUNDS, initial_population=initial_population)
     return pso

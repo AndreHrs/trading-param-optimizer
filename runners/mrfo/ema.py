@@ -21,23 +21,23 @@ BOUNDS_INDEPENDENT = {
 }
 
 
-def run_shared(prices, pop_size=100, max_iter=50, somersault=2.0, initial_population=None):
+def run_shared(prices, pop_size=100, max_iter=50, somersault=2.0, seed=None, initial_population=None):
     def fitness(candidate):
         short, long = _ema_signals_shared(prices, candidate[0], candidate[1], candidate[2])
         cash, *_ = evaluate(prices, short, long)
         return -cash
 
-    mrfo = MRFO(pop_size=pop_size, max_iterations=max_iter, somersault_range=somersault)
+    mrfo = MRFO(pop_size=pop_size, max_iterations=max_iter, somersault_range=somersault, seed=seed)
     mrfo.run(fitness, bounds=BOUNDS_SHARED, initial_population=initial_population)
     return mrfo
 
 
-def run_independent(prices, pop_size=100, max_iter=50, somersault=2.0, initial_population=None):
+def run_independent(prices, pop_size=100, max_iter=50, somersault=2.0, seed=None, initial_population=None):
     def fitness(candidate):
         short, long = _ema_signals_independent(prices, candidate[0], candidate[1], candidate[2], candidate[3])
         cash, *_ = evaluate(prices, short, long)
         return -cash
 
-    mrfo = MRFO(pop_size=pop_size, max_iterations=max_iter, somersault_range=somersault)
+    mrfo = MRFO(pop_size=pop_size, max_iterations=max_iter, somersault_range=somersault, seed=seed)
     mrfo.run(fitness, bounds=BOUNDS_INDEPENDENT, initial_population=initial_population)
     return mrfo

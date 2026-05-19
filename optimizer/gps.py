@@ -3,7 +3,9 @@ import random
 import time
 class GPS:
     def __init__(self, initial_step_size,
-            tolerance, decay_rate, max_iterations=50):
+            tolerance, decay_rate, max_iterations=50, seed=None):
+        if seed is not None:
+            np.random.seed(seed)
         # hyperparameters
         self.initial_step_size = initial_step_size # alpha
         self.tolerance = tolerance # epsilon

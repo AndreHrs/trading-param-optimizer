@@ -3,7 +3,7 @@ from optimizer.evaluator import evaluate
 from runners.shared import BOUNDS_WEIGHTED as BOUNDS, get_signals_weighted as get_signals, _weighted_signal
 
 
-def run(prices, pop_size=100, max_iter=50, n_shells=5, initial_population=None):
+def run(prices, pop_size=100, max_iter=50, n_shells=5, seed=None, initial_population=None):
     def fitness(candidate):
         high = _weighted_signal(
             prices,
@@ -20,6 +20,6 @@ def run(prices, pop_size=100, max_iter=50, n_shells=5, initial_population=None):
         cash, *_ = evaluate(prices, high, low)
         return -cash
 
-    aos = AOS(pop_size, max_iter, n_shells)
+    aos = AOS(pop_size, max_iter, n_shells, seed=seed)
     aos.run(fitness, bounds=BOUNDS, initial_population=initial_population)
     return aos

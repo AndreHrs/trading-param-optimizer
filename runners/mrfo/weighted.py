@@ -3,7 +3,7 @@ from optimizer.evaluator import evaluate
 from runners.shared import BOUNDS_WEIGHTED as BOUNDS, get_signals_weighted as get_signals, _weighted_signal
 
 
-def run(prices, pop_size=100, max_iter=50, somersault=2.0, initial_population=None):
+def run(prices, pop_size=100, max_iter=50, somersault=2.0, seed=None, initial_population=None):
     def fitness(candidate):
         high = _weighted_signal(
             prices,
@@ -20,6 +20,6 @@ def run(prices, pop_size=100, max_iter=50, somersault=2.0, initial_population=No
         cash, *_ = evaluate(prices, high, low)
         return -cash
 
-    mrfo = MRFO(pop_size=pop_size, max_iterations=max_iter, somersault_range=somersault)
+    mrfo = MRFO(pop_size=pop_size, max_iterations=max_iter, somersault_range=somersault, seed=seed)
     mrfo.run(fitness, bounds=BOUNDS, initial_population=initial_population)
     return mrfo

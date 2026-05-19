@@ -3,7 +3,9 @@ import time
 
 class PSO:
 
-    def __init__(self, pop_size, max_iterations, w_max=0.9, w_min=0.4, c1=2, c2=2, max_vel_frac=0.1, patience=50):
+    def __init__(self, pop_size, max_iterations, w_max=0.9, w_min=0.4, c1=2, c2=2, max_vel_frac=0.1, patience=50, seed=None):
+        if seed is not None:
+            np.random.seed(seed)
         # hyperparameters
         self.candidate_solutions = []
         self.param_ranges = []

@@ -6,7 +6,10 @@ class SOS:
     """
     Symbiotic Organisms Search (SOS) Optimizer
     """
-    def __init__(self, pop_size, max_iterations, patience=50):
+    def __init__(self, pop_size, max_iterations, patience=50, seed=None):
+        if seed is not None:
+            np.random.seed(seed)
+            random.seed(seed)
         # hyperparameters
         self.pop_size = pop_size
         self.max_iterations = max_iterations

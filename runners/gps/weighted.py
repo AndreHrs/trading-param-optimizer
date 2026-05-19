@@ -3,7 +3,7 @@ from optimizer.evaluator import evaluate
 from runners.shared import BOUNDS_WEIGHTED as BOUNDS, get_signals_weighted as get_signals, _weighted_signal
 
 
-def run(prices, initial_step_size=1, tolerance=1e-5, decay_rate=0.5, max_iterations=50, D=[], initial_position=None):
+def run(prices, initial_step_size=1, tolerance=1e-5, decay_rate=0.5, max_iterations=50, D=[], seed=None, initial_position=None):
     def fitness(candidate):
         high = _weighted_signal(
             prices,
@@ -20,6 +20,6 @@ def run(prices, initial_step_size=1, tolerance=1e-5, decay_rate=0.5, max_iterati
         cash, *_ = evaluate(prices, high, low)
         return cash
 
-    gps = GPS(initial_step_size, tolerance, decay_rate, max_iterations)
+    gps = GPS(initial_step_size, tolerance, decay_rate, max_iterations, seed=seed)
     gps.run(fitness, D=D, bounds=BOUNDS, initial_position=initial_position)
     return gps
