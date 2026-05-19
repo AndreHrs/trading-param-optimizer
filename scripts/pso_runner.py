@@ -8,7 +8,7 @@ from runners.aos.plot import plot_equity_and_purchases
 train_prices, train_dates, test_prices, test_dates = load_data("./data/BTC-Daily.csv")
 
 # --- EMA shared alpha ---
-ema_shared_pso = ema_runner.run_shared(train_prices, max_vel_frac=0.5)
+ema_shared_pso = ema_runner.run_shared(train_prices)
 print("EMA SHARED ALPHA RUN:::")
 print(f"best param   : {ema_shared_pso.get_best_params()}")
 print(f"best fitness : {ema_shared_pso.best_fitness}")
@@ -30,7 +30,7 @@ print("SHARED SELL AT TEST:::", sell_at_test)
 print("SHARED CASH AT TEST END:::", cash_test)
 
 # --- EMA independent alpha ---
-ema_ind_pso = ema_runner.run_independent(train_prices, max_vel_frac=0.5)
+ema_ind_pso = ema_runner.run_independent(train_prices)
 print("EMA INDEPENDENT RUN:::")
 print(f"best param   : {ema_ind_pso.get_best_params()}")
 print(f"best fitness : {ema_ind_pso.best_fitness}")

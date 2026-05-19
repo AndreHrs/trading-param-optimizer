@@ -1,11 +1,14 @@
-import sys, os; sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.data_loader import load_data
 
 train_prices, train_dates, test_prices, test_dates = load_data("./data/BTC-Daily.csv")
 
 from optimizer.aos import AOS
 from optimizer.evaluator import evaluate
-from utilities.filters import lma_filter, ema_filter, wma, sma_filter
+from utilities.filters import wma, sma_filter
 
 prices = train_prices
 

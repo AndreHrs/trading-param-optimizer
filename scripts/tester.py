@@ -1,9 +1,12 @@
-import sys, os; sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utilities.data_loader import load_data
 
 train_prices, train_dates, test_prices, test_dates = load_data("./data/BTC-Daily.csv")
 
-from utilities.filters import lma_filter, ema_filter, wma, sma_filter
+from utilities.filters import wma, sma_filter
 
 import numpy as np
 P = train_prices[:300]
@@ -48,7 +51,7 @@ if btc_held > 0:
     print(f"Holding btc at final epoch. Do sell at time {t} with price {P[t]}")
     gain = btc_held * P[t]
     gainminusfee = gain * (1 - fee)
-    cash += gainminusfee
+    cash = gainminusfee
 
 print("Final cash", cash)
 

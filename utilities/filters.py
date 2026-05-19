@@ -12,7 +12,7 @@ def ema_filter(N, alpha, normalize=True):
     k = np.arange(N)
     kernel = alpha * (1-alpha) ** k
 
-    if(normalize):
+    if normalize:
         kernel = kernel / np.sum(kernel)
     return kernel
 
