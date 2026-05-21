@@ -16,15 +16,15 @@ robustness than a matched-regime random split would provide.
 \subsection{Experimental Design}
 
 The full factorial design comprised 6~algorithms $\times$ 5~strategies
-$\times$ 2~initialisation modes $\times$ 30~runs = 1800~total trials. Two
+$\times$ 2~initialisation modes $\times$ 50~runs = 3000~total trials. Two
 initialisation modes were tested: fixed initialisation, in which all runs
 begin from a deterministic seed position, and random initialisation, in which
 each run begins from a position drawn uniformly at random from the search
 space. The paired comparison of fixed versus random initialisation tests
 sensitivity to starting conditions. Strong dependence on initialisation would
 indicate algorithmic fragility, with convergence driven by the seed rather
-than by the search mechanism. A run count of 30 was chosen as a practical
-compromise between statistical power and the total computational cost of 1800
+than by the search mechanism. A run count of 50 was chosen as a practical
+compromise between statistical power and the total computational cost of 3000
 trials; it is sufficient to apply non-parametric distributional tests but
 modest relative to what would be preferred for high-variance optimisers.
 
