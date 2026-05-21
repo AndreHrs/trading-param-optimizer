@@ -9,72 +9,138 @@
   \caption{\label{fig:dunn_train}%
     Dunn's post-hoc pairwise $p$-values (Bonferroni-corrected) for all strategy
     $\times$ initialisation combinations --- training fitness. Red indicates
-  significant difference ($p < 0.05$); green indicates no significant difference.}
+    significant difference ($p < 0.05$); green indicates no significant difference.}
 \end{figure}
 %TC:endignore
 
 \begin{table}[h]
 \centering
 \caption{\label{tab:kruskal_wallis}%
-Kruskal--Wallis $H$-test results comparing performance across optimization
-algorithms for each strategy and initialization mode combination. All ten
-configurations show statistically significant differences ($p < 0.001$),
-indicating that algorithm choice meaningfully affects outcomes regardless
-of strategy or initialization mode.}
-\begin{tabular}{llcr}
+Kruskal--Wallis $H$-test results comparing optimisation algorithms for each
+strategy and initialisation mode, on \emph{training} and \emph{test} fitness.
+On training fitness, algorithm choice is universally significant
+($p < 10^{-34}$). On test fitness the effect is strategy-dependent:
+\texttt{ema\_shared} loses all significance ($p > 0.90$), while
+\texttt{ema\_independent} retains the strongest effect ($H > 179$).}
+\begin{tabular}{llcccc}
 \toprule
-\textbf{Strategy} & \textbf{Start mode} & \textbf{$H$-statistic} & \textbf{$p$-value} \\
+& & \multicolumn{2}{c}{\textbf{Training}} & \multicolumn{2}{c}{\textbf{Test}} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+\textbf{Strategy} & \textbf{Start} & \textbf{$H$} & \textbf{$p$} & \textbf{$H$} & \textbf{$p$} \\
 \midrule
-sma              & fixed  & 119.07 & $4.95 \times 10^{-24}$ \\
-sma              & random & 121.15 & $1.79 \times 10^{-24}$ \\
-lma              & fixed  & 114.62 & $4.31 \times 10^{-23}$ \\
-lma              & random & 106.19 & $2.62 \times 10^{-21}$ \\
-ema\_shared      & fixed  & 114.93 & $3.72 \times 10^{-23}$ \\
-ema\_shared      & random & 114.24 & $5.21 \times 10^{-23}$ \\
-ema\_independent & fixed  & 151.73 & $5.71 \times 10^{-31}$ \\
-ema\_independent & random & 144.01 & $2.51 \times 10^{-29}$ \\
-weighted         & fixed  & 120.69 & $2.24 \times 10^{-24}$ \\
-weighted         & random & 120.88 & $2.05 \times 10^{-24}$ \\
+sma              & fixed  & 200.63 & $2.1\times10^{-41}$ & 46.59  & $6.9\times10^{-9}$  \\
+sma              & random & 198.09 & $7.3\times10^{-41}$ & 85.68  & $5.4\times10^{-17}$ \\
+lma              & fixed  & 176.56 & $2.9\times10^{-36}$ & 73.95  & $1.5\times10^{-14}$ \\
+lma              & random & 170.28 & $6.3\times10^{-35}$ & 58.34  & $2.7\times10^{-11}$ \\
+ema\_shared      & fixed  & 206.76 & $1.0\times10^{-42}$ & 0.60   & $9.9\times10^{-1}$  \\
+ema\_shared      & random & 190.41 & $3.2\times10^{-39}$ & 1.51   & $9.1\times10^{-1}$  \\
+ema\_independent & fixed  & 223.17 & $3.1\times10^{-46}$ & 184.26 & $6.6\times10^{-38}$ \\
+ema\_independent & random & 244.91 & $6.8\times10^{-51}$ & 179.13 & $8.2\times10^{-37}$ \\
+weighted         & fixed  & 213.19 & $4.3\times10^{-44}$ & 78.91  & $1.4\times10^{-15}$ \\
+weighted         & random & 224.80 & $1.4\times10^{-46}$ & 78.54  & $1.7\times10^{-15}$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The Kruskal-Wallis test was significant across all ten strategy $\times$
-initialisation combinations ($p < 10^{-20}$ in every case) as per figure \ref{tab:kruskal_wallis}.
-Algorithm choice has a universally
-significant effect on training fitness. The \texttt{ema\_independent}
-strategy ($d=4$) consistently yielded the highest $H$-statistics, suggesting
-that decoupling the two EMA smoothing parameters amplifies inter-algorithm
-performance differences more than further increasing dimensionality
-(\texttt{weighted} at $d=14$ produced lower $H$-statistics) --- algorithms
-with stronger exploration mechanisms appear to extract more from the
-qualitative change in expressiveness than from raw degrees of freedom.
+The Kruskal--Wallis test was significant across all ten strategy $\times$
+initialisation combinations on training fitness ($p < 10^{-34}$ in every
+case; Table~\ref{tab:kruskal_wallis}, training columns). Algorithm choice has
+a universally significant effect on training fitness. The
+\texttt{ema\_independent} strategy ($d=4$) yielded the highest
+$H$-statistics ($H = 223.17$ fixed, $244.91$ random), exceeding the $d=14$
+\texttt{weighted} strategy ($H = 213.19$, $224.80$). This suggests that
+decoupling the two EMA smoothing parameters amplifies inter-algorithm
+performance differences more than further increasing raw dimensionality:
+algorithms with stronger exploration mechanisms appear to extract more from
+the qualitative change in expressiveness than from additional degrees of
+freedom alone.
 
-Four patterns emerge from Dunn's pairwise post-hoc comparisons, illustrated
-in Figure~\ref{fig:dunn_train}. First, GPS is significantly worse than every
-other algorithm in $8/10$ training conditions; the exceptions are on
-\texttt{ema\_independent}, where MRFO collapses to the no-trade fixed point
-($\$1000$, the starting balance) in $\sim 20\%$ of runs and matches GPS's
-lower bound. This confirms that single-state local search struggles to
-navigate the multimodal MA fitness landscape: without population diversity,
-GPS converges to the nearest local optimum from its starting position. Second,
-PSO, SOS, and AOS produced training-fitness distributions that were not
-statistically distinguishable under Bonferroni-corrected Dunn's post-hoc
-comparisons in the majority of strategy $\times$ initialisation conditions
+Three patterns emerge from Dunn's pairwise post-hoc comparisons on training
+fitness (Figure~\ref{fig:dunn_train}). First, GPS is significantly separated
+from the population-based methods in the large majority of training
+conditions, consistent with single-state local search struggling to navigate
+the multimodal MA fitness landscape: without population diversity, GPS
+converges to the nearest local optimum from its starting position. The
+clearest exception is \texttt{ema\_independent}, where GPS and MRFO are not
+significantly different ($p = 0.16$ fixed, $p = 1.00$ random); on this
+strategy MRFO collapses to the no-trade fixed point ($\$1{,}000$, the
+starting balance) in every fixed-initialisation run (median $= \$1{,}000$,
+$\textrm{CV} = 0$), so the non-significance reflects two algorithms failing
+to the same floor rather than performing comparably well.
+
+Second, the apparent PSO--SOS--AOS equivalence is strategy-dependent rather
+than universal. On \texttt{weighted} and on the broken $d=2$ strategies
+(\texttt{sma}, \texttt{lma}), PSO, SOS, and AOS are largely statistically
+indistinguishable under Bonferroni-corrected Dunn's comparisons
 (non-significance under Bonferroni is not formal equivalence; we report what
-the test shows). Despite AOS lacking per-particle personal memory, its
-shell-based exploration achieves comparable training fitness to PSO,
-suggesting personal-best tracking contributes little marginal benefit
-when global-best guidance is combined with structured shell diversity. Third, 
-SOS exhibited unusually low within-cell variance on several conditions. Most
-notably standard deviation of = \$17 across 30 random-init runs on \texttt{weighted} and
-identical fitness on all 30 \texttt{sma} and \texttt{lma} runs, consistent with its
-three-phase update collapsing population diversity within a small number of
-iterations. SOS also requires three fitness evaluations per organism per
-iteration, so if compute is taken into account for comparison it would likely
-disadvantage SOS relative to PSO. Fourth, MRFO and ABO occupy intermediate
-positions that vary by strategy, with no consistent dominance pattern
-relative to the PSO-AOS-SOS cluster.
+the test shows). On \texttt{ema\_independent}, however, this cluster breaks
+apart: AOS separates significantly from PSO ($p = 1.7 \times 10^{-3}$ fixed,
+$p = 2.5 \times 10^{-6}$ random) and from SOS. The most expressive landscape
+is therefore the one on which the optimisers are most cleanly differentiated,
+and on which AOS no longer tracks the memory-bearing methods --- a divergence
+examined further in the test results below.
+
+Third, SOS exhibits zero within-cell variance on the broken $d=2$
+strategies: identical training fitness across all 50 \texttt{sma} runs and
+all 50 \texttt{lma} runs ($\textrm{CV} = 0.000$ in both cases;
+Table~\ref{tab:perf_train}). This is consistent with its three-phase update
+collapsing population diversity within a small number of iterations. SOS
+also requires three fitness evaluations per organism per iteration; its mean
+wall-clock runtime ($14{,}730$\,ms) is roughly four times that of PSO
+($3{,}706$\,ms), so a compute-normalised comparison would materially
+disadvantage SOS relative to PSO. MRFO and ABO occupy intermediate positions
+that vary by strategy, with no consistent dominance pattern relative to the
+PSO--SOS--AOS cluster.
+
+\begin{table}[ht]
+\centering
+\caption{\label{tab:perf_train}%
+Summary of \emph{training} fitness by algorithm and strategy, pooled across
+both initialisation modes (100 runs per cell). Note the very high training
+fitness reached on \texttt{ema\_shared} (medians up to $\$133{,}000$), which
+Section~\ref{sec:results} shows does not transfer to test.}
+\small
+\begin{tabular}{llrrrrr}
+\toprule
+\textbf{Algo} & \textbf{Strategy} & \textbf{Mean} & \textbf{Std} & \textbf{CV} & \textbf{Median} & \textbf{Max} \\
+\midrule
+abo  & ema\_independent & $10{,}750.12$ & $1{,}802.05$ & $0.168$ & $10{,}347.23$ & $15{,}352.63$ \\
+aos  & ema\_independent & $19{,}631.96$ & $5{,}008.31$ & $0.255$ & $21{,}904.21$ & $21{,}904.21$ \\
+gps  & ema\_independent & $5{,}179.20$  & $3{,}858.59$ & $0.745$ & $4{,}543.98$  & $12{,}939.69$ \\
+mrfo & ema\_independent & $1{,}000.00$  & $0.00$       & $0.000$ & $1{,}000.00$  & $1{,}000.00$  \\
+pso  & ema\_independent & $12{,}092.59$ & $1{,}255.72$ & $0.104$ & $11{,}463.70$ & $15{,}303.77$ \\
+sos  & ema\_independent & $13{,}273.95$ & $799.34$     & $0.060$ & $13{,}197.07$ & $15{,}607.47$ \\
+\midrule
+abo  & ema\_shared      & $93{,}661.07$  & $24{,}627.52$ & $0.263$ & $90{,}428.45$  & $157{,}746.47$ \\
+aos  & ema\_shared      & $67{,}128.07$  & $26{,}684.54$ & $0.398$ & $60{,}697.82$  & $229{,}103.39$ \\
+gps  & ema\_shared      & $11{,}989.89$  & $14{,}016.59$ & $1.169$ & $7{,}882.87$   & $59{,}090.09$  \\
+mrfo & ema\_shared      & $86{,}615.44$  & $31{,}961.19$ & $0.369$ & $78{,}405.64$  & $237{,}614.46$ \\
+pso  & ema\_shared      & $103{,}646.40$ & $22{,}819.48$ & $0.220$ & $102{,}724.96$ & $193{,}483.44$ \\
+sos  & ema\_shared      & $132{,}840.58$ & $30{,}893.95$ & $0.233$ & $128{,}243.17$ & $215{,}646.97$ \\
+\midrule
+abo  & lma             & $802.79$ & $16.63$  & $0.021$ & $800.11$ & $818.93$ \\
+aos  & lma             & $805.44$ & $15.38$  & $0.019$ & $809.92$ & $818.93$ \\
+gps  & lma             & $463.95$ & $120.20$ & $0.259$ & $461.38$ & $818.93$ \\
+mrfo & lma             & $810.79$ & $11.45$  & $0.014$ & $818.93$ & $818.93$ \\
+pso  & lma             & $798.10$ & $16.98$  & $0.021$ & $800.11$ & $818.93$ \\
+sos  & lma             & $818.93$ & $0.00$   & $0.000$ & $818.93$ & $818.93$ \\
+\midrule
+abo  & sma             & $930.41$ & $13.21$  & $0.014$ & $932.50$ & $932.50$ \\
+aos  & sma             & $931.76$ & $0.66$   & $0.001$ & $931.18$ & $932.50$ \\
+gps  & sma             & $551.42$ & $118.34$ & $0.215$ & $542.81$ & $917.97$ \\
+mrfo & sma             & $932.50$ & $0.00$   & $0.000$ & $932.50$ & $932.50$ \\
+pso  & sma             & $909.75$ & $48.31$  & $0.053$ & $932.50$ & $932.50$ \\
+sos  & sma             & $932.50$ & $0.00$   & $0.000$ & $932.50$ & $932.50$ \\
+\midrule
+abo  & weighted        & $11{,}339.38$ & $1{,}200.41$ & $0.106$ & $11{,}385.64$ & $14{,}205.09$ \\
+aos  & weighted        & $10{,}697.16$ & $2{,}147.99$ & $0.201$ & $10{,}355.90$ & $29{,}952.87$ \\
+gps  & weighted        & $5{,}124.90$  & $3{,}544.28$ & $0.692$ & $5{,}295.31$  & $12{,}601.00$ \\
+mrfo & weighted        & $14{,}049.10$ & $9{,}313.82$ & $0.663$ & $11{,}952.69$ & $65{,}347.85$ \\
+pso  & weighted        & $12{,}744.28$ & $1{,}112.69$ & $0.087$ & $12{,}602.90$ & $17{,}561.96$ \\
+sos  & weighted        & $13{,}215.13$ & $549.20$     & $0.042$ & $13{,}242.64$ & $14{,}531.01$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Test Results --- Performance Against the Passive Baseline}
 
@@ -86,8 +152,8 @@ relative to the PSO-AOS-SOS cluster.
   \includegraphics[width=0.95\textwidth]{images/median_test_cash_random.png}
   \caption{\label{fig:bh_median}%
     Median test cash by algorithm and strategy, normalised to the
-    buy-and-hold baseline ($\$5{,}660$ from $\$1{,}000$ initial under matched
-    $3\%$ entry and exit fees), for fixed (top) and random (bottom)
+    buy-and-hold baseline ($\$5{,}660.26$ from $\$1{,}000$ initial under
+    matched $3\%$ entry and exit fees), for fixed (top) and random (bottom)
     initialisation. No algorithm $\times$ strategy median exceeds the
     baseline ($1.00\times$ line) under any condition.}
 \end{figure}
@@ -100,7 +166,7 @@ relative to the PSO-AOS-SOS cluster.
   \caption{\label{fig:bh_max}%
     Maximum test cash by algorithm and strategy, normalised to the
     buy-and-hold baseline, for fixed (top) and random (bottom)
-    initialisation. Bars above $1.00\times$ indicate at least one run in 30
+    initialisation. Bars above $1.00\times$ indicate at least one run in 50
     exceeded passive holding; concentration of such bars in
     \texttt{ema\_shared} reflects its long-tailed jackpot distribution
     rather than reliable optimisation.}
@@ -110,146 +176,108 @@ relative to the PSO-AOS-SOS cluster.
 \begin{table}[h]
 \centering
 \caption{\label{tab:beats_bh}%
-Runs exceeding the buy-and-hold baseline ($\$5{,}660$) under strict $>$
-comparison. Counts out of 30 runs per cell; 1{,}800 trials total.
-One MRFO run on \texttt{ema\_shared} (fixed init) converged to exactly
-$\$5{,}660.26$, matching buy-and-hold to six decimal places; it is excluded
-from the strict-inequality counts but discussed below.}
+Runs exceeding the passive buy-and-hold baseline under strict $>$ comparison.
+The baseline is $\$5{,}660.26$; a threshold of $\$5{,}661$ is applied here for
+reporting clarity. No run falls in the interval $(\$5{,}660.26,\,\$5{,}661]$,
+so the integer threshold yields counts identical to the exact baseline.
+Counts are out of 50 runs per cell; 3{,}000 trials in total.}
 \begin{tabular}{lrrrrrrrrrr}
 \toprule
 & \multicolumn{2}{c}{\textbf{ema\_ind}} & \multicolumn{2}{c}{\textbf{ema\_shared}} & \multicolumn{2}{c}{\textbf{lma}} & \multicolumn{2}{c}{\textbf{sma}} & \multicolumn{2}{c}{\textbf{weighted}} \\
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}
 algo & fix & rnd & fix & rnd & fix & rnd & fix & rnd & fix & rnd \\
 \midrule
-abo  & 0 & 0 & 1 & 2 & 0 & 0 & 0 & 0 & 1 & 3 \\
-aos  & 3 & 1 & 0 & 2 & 0 & 0 & 0 & 0 & 0 & 1 \\
-gps  & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
-mrfo & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 2 \\
-pso  & 0 & 0 & 2 & 0 & 0 & 0 & 0 & 0 & 0 & 1 \\
-sos  & 0 & 0 & 2 & 2 & 0 & 0 & 0 & 0 & 0 & 0 \\
+abo  & 0 & 0 & 1 & 3 & 0 & 0 & 0 & 0 & 3 & 6 \\
+aos  & 0 & 0 & 1 & 3 & 0 & 0 & 0 & 0 & 2 & 2 \\
+gps  & 2 & 0 & 3 & 3 & 0 & 0 & 0 & 0 & 0 & 0 \\
+mrfo & 0 & 0 & 3 & 3 & 0 & 0 & 0 & 0 & 0 & 3 \\
+pso  & 0 & 0 & 2 & 6 & 0 & 0 & 0 & 0 & 2 & 1 \\
+sos  & 0 & 0 & 4 & 2 & 0 & 0 & 0 & 0 & 4 & 3 \\
 \midrule
-\textbf{total} & \textbf{4} & \textbf{1} & \textbf{5} & \textbf{7} & \textbf{0} & \textbf{0} & \textbf{0} & \textbf{0} & \textbf{1} & \textbf{7} \\
+\textbf{total} & \textbf{2} & \textbf{0} & \textbf{14} & \textbf{20} & \textbf{0} & \textbf{0} & \textbf{0} & \textbf{0} & \textbf{11} & \textbf{15} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 A passive buy-and-hold strategy over the 2020--2022 test period, with
-$3\%$ broker fees, produced $\$5{,}660$ from a $\$1{,}000$ starting
-balance. Of the 1{,}800 optimised bots, only 25 ($1.38\%$) strictly exceeded
-this baseline; no algorithm $\times$ strategy median exceeded it under any
-condition (Figure~\ref{fig:bh_median}). Win rates were heavily stratified by
-strategy (Table~\ref{tab:beats_bh}): \texttt{sma} and \texttt{lma} (both
-$d=2$) yielded zero wins across 720 combined runs; \texttt{ema\_independent}
-($d=4$) produced $5/360$ ($1.38\%$); \texttt{weighted} ($d=14$) produced
-$8/360$ ($2.22\%$); \texttt{ema\_shared} ($d=3$) produced $12/360$ ($3.33\%$).
+matched $3\%$ entry and exit fees, produced $\$5{,}660.26$ from a $\$1{,}000$
+starting balance. Of the 3{,}000 optimised bots, only 62 ($2.07\%$) strictly
+exceeded this baseline; no algorithm $\times$ strategy median exceeded it
+under any condition (Figure~\ref{fig:bh_median}). Win rates were heavily
+stratified by strategy (Table~\ref{tab:beats_bh}). Each strategy spans
+$6\ \text{algorithms} \times 2\ \text{initialisation modes} \times 50\
+\text{trials} = 600$ runs. \texttt{sma} and \texttt{lma} (both $d=2$) yielded
+zero wins across their 1{,}200 combined runs; \texttt{ema\_independent}
+($d=4$) produced only $2/600$ ($0.33\%$), both under fixed initialisation;
+\texttt{weighted} ($d=14$) produced $26/600$ ($4.33\%$); and
+\texttt{ema\_shared} ($d=3$) produced $34/600$ ($5.67\%$). The wins are thus
+almost entirely confined to two strategies --- and, as
+Section~\ref{sec:results} (Why Training Fitness Did Not Predict Test Fitness)
+shows, those are precisely the two strategies on which training fitness
+carries the least information about test fitness.
 
 \begin{table}[ht]
 \centering
-\caption{\label{tab:algo_performance_fixed}%
-Statistical summary of performance metrics across combinations of algorithms 
-and strategy configurations under the \texttt{fixed} start mode. 
-Values represent metrics across 30 runs per cell.}
+\caption{\label{tab:perf_test}%
+Summary of \emph{test} fitness by algorithm and strategy, pooled across both
+initialisation modes (100 runs per cell). Compare against
+Table~\ref{tab:perf_train}: training medians above $\$100{,}000$ on
+\texttt{ema\_shared} collapse to a test median of $\$1{,}000$ for every
+algorithm.}
 \small
-\begin{tabular}{llrrrrrrr}
+\begin{tabular}{llrrrrr}
 \toprule
-\textbf{Algo} & \textbf{Strategy} & \textbf{Count} & \textbf{Mean} & \textbf{Std} & \textbf{Var} & \textbf{Min} & \textbf{Median} & \textbf{Max} \\
+\textbf{Algo} & \textbf{Strategy} & \textbf{Mean} & \textbf{Std} & \textbf{CV} & \textbf{Median} & \textbf{Max} \\
 \midrule
-abo  & ema\_independent & 30 & $1{,}482.45$ &   $994.69$ &   $989{,}410.42$ &   $858.15$ & $1{,}202.42$ & $4{,}360.90$ \\
-     & ema\_shared      & 30 & $1{,}815.81$ & $1{,}391.74$ & $1{,}936{,}939.29$ &   $633.33$ & $1{,}157.60$ & $6{,}138.88$ \\
-     & lma             & 30 &   $683.14$ &   $187.41$ &    $35{,}120.68$ &   $487.74$ &   $671.51$ &   $907.98$ \\
-     & sma             & 30 & $1{,}172.25$ &    $12.48$ &       $155.63$ & $1{,}153.51$ & $1{,}180.28$ & $1{,}180.28$ \\
-     & weighted        & 30 & $4{,}451.70$ &   $817.09$ &   $667{,}640.83$ & $1{,}130.40$ & $4{,}651.61$ & $5{,}691.01$ \\
+abo  & ema\_independent & $1{,}455.93$ & $800.27$     & $0.550$ & $1{,}239.42$ & $4{,}998.46$ \\
+aos  & ema\_independent & $1{,}079.86$ & $496.95$     & $0.460$ & $1{,}104.87$ & $4{,}249.85$ \\
+gps  & ema\_independent & $2{,}633.91$ & $1{,}703.55$ & $0.647$ & $1{,}982.11$ & $5{,}850.78$ \\
+mrfo & ema\_independent & $1{,}000.00$ & $0.00$       & $0.000$ & $1{,}000.00$ & $1{,}000.00$ \\
+pso  & ema\_independent & $3{,}288.24$ & $1{,}485.39$ & $0.452$ & $4{,}435.27$ & $4{,}565.80$ \\
+sos  & ema\_independent & $3{,}806.42$ & $1{,}374.95$ & $0.361$ & $4{,}565.80$ & $5{,}159.96$ \\
 \midrule
-aos  & ema\_independent & 30 & $4{,}271.85$ & $1{,}401.70$ & $1{,}964{,}770.50$ &   $977.93$ & $4{,}425.39$ & $7{,}478.46$ \\
-     & ema\_shared      & 30 & $1{,}894.03$ & $1{,}269.02$ & $1{,}610{,}421.47$ &   $603.28$ & $1{,}137.12$ & $4{,}377.15$ \\
-     & lma             & 30 &   $794.10$ &   $176.29$ &    $31{,}077.99$ &   $485.41$ &   $907.98$ &   $921.28$ \\
-     & sma             & 30 & $1{,}172.25$ &    $12.48$ &       $155.63$ & $1{,}153.51$ & $1{,}180.28$ & $1{,}180.28$ \\
-     & weighted        & 30 & $4{,}465.42$ &   $830.24$ &   $689{,}298.14$ & $1{,}000.00$ & $4{,}676.32$ & $5{,}500.04$ \\
+abo  & ema\_shared      & $1{,}903.99$ & $1{,}636.50$ & $0.860$ & $1{,}000.00$ & $8{,}795.49$ \\
+aos  & ema\_shared      & $1{,}914.91$ & $1{,}653.88$ & $0.864$ & $1{,}000.00$ & $7{,}284.67$ \\
+gps  & ema\_shared      & $1{,}970.13$ & $2{,}187.39$ & $1.110$ & $1{,}000.00$ & $9{,}614.94$ \\
+mrfo & ema\_shared      & $1{,}868.67$ & $1{,}771.49$ & $0.948$ & $1{,}000.00$ & $7{,}660.07$ \\
+pso  & ema\_shared      & $2{,}265.04$ & $1{,}993.23$ & $0.880$ & $1{,}000.00$ & $8{,}392.40$ \\
+sos  & ema\_shared      & $2{,}190.03$ & $2{,}061.31$ & $0.941$ & $1{,}000.00$ & $8{,}663.88$ \\
 \midrule
-gps  & ema\_independent & 30 & $2{,}328.67$ & $1{,}619.27$ & $2{,}262{,}043.67$ &   $509.80$ & $1{,}588.76$ & $5{,}684.32$ \\
-     & ema\_shared      & 30 & $1{,}831.89$ & $1{,}465.63$ & $2{,}148{,}063.73$ &   $462.49$ & $1{,}000.00$ & $4{,}584.60$ \\
-     & lma             & 30 &   $879.14$ &   $221.14$ &    $48{,}901.80$ &   $378.97$ &   $942.98$ & $1{,}228.54$ \\
-     & sma             & 30 & $1{,}154.99$ &   $216.37$ &    $46{,}814.35$ &   $725.76$ & $1{,}104.15$ & $1{,}740.13$ \\
-     & weighted        & 30 & $2{,}904.46$ & $1{,}852.43$ & $3{,}431{,}485.27$ &   $370.96$ & $3{,}688.60$ & $5{,}093.26$ \\
+abo  & lma             & $718.72$ & $186.57$ & $0.260$ & $671.51$ & $907.98$   \\
+aos  & lma             & $799.00$ & $173.74$ & $0.217$ & $907.98$ & $977.77$   \\
+gps  & lma             & $906.20$ & $217.94$ & $0.241$ & $931.86$ & $1{,}399.39$ \\
+mrfo & lma             & $759.18$ & $197.79$ & $0.261$ & $907.98$ & $907.98$   \\
+pso  & lma             & $659.46$ & $174.85$ & $0.265$ & $671.51$ & $907.98$   \\
+sos  & lma             & $907.98$ & $0.00$   & $0.000$ & $907.98$ & $907.98$   \\
 \midrule
-mrfo & ema\_independent & 30 & $1{,}000.00$ &     $0.00$ &           $0.00$ & $1{,}000.00$ & $1{,}000.00$ & $1{,}000.00$ \\
-     & ema\_shared      & 30 & $1{,}606.10$ & $1{,}366.90$ & $1{,}868{,}412.38$ &   $484.18$ & $1{,}000.00$ & $5{,}660.26$ \\
-     & lma             & 30 &   $749.93$ &   $200.35$ &    $40{,}140.58$ &   $487.74$ &   $907.98$ &   $907.98$ \\
-     & sma             & 30 & $1{,}180.28$ &     $0.00$ &           $0.00$ & $1{,}180.28$ & $1{,}180.28$ & $1{,}180.28$ \\
-     & weighted        & 30 & $4{,}329.08$ & $1{,}145.65$ & $1{,}312{,}524.63$ & $1{,}381.96$ & $4{,}694.22$ & $5{,}644.11$ \\
+abo  & sma             & $1{,}170.00$ & $22.46$  & $0.019$ & $1{,}180.28$ & $1{,}180.28$ \\
+aos  & sma             & $1{,}165.29$ & $13.35$  & $0.011$ & $1{,}153.51$ & $1{,}180.28$ \\
+gps  & sma             & $1{,}080.49$ & $248.38$ & $0.230$ & $1{,}055.30$ & $1{,}857.14$ \\
+mrfo & sma             & $1{,}180.28$ & $0.00$   & $0.000$ & $1{,}180.28$ & $1{,}180.28$ \\
+pso  & sma             & $1{,}112.79$ & $155.32$ & $0.140$ & $1{,}180.28$ & $1{,}180.28$ \\
+sos  & sma             & $1{,}180.28$ & $0.00$   & $0.000$ & $1{,}180.28$ & $1{,}180.28$ \\
 \midrule
-pso  & ema\_independent & 30 & $3{,}219.79$ & $1{,}460.65$ & $2{,}133{,}495.71$ & $1{,}201.23$ & $4{,}296.97$ & $4{,}565.80$ \\
-     & ema\_shared      & 30 & $2{,}468.14$ & $2{,}176.03$ & $4{,}735{,}114.23$ &   $824.62$ & $1{,}000.00$ & $10{,}074.64$ \\
-     & lma             & 30 &   $587.25$ &   $135.88$ &    $18{,}463.77$ &   $487.74$ &   $487.74$ &   $907.98$ \\
-     & sma             & 30 & $1{,}129.06$ &   $142.71$ &    $20{,}365.10$ &   $617.37$ & $1{,}180.28$ & $1{,}180.28$ \\
-     & weighted        & 30 & $4{,}813.35$ &   $460.04$ &   $211{,}639.97$ & $3{,}637.12$ & $4{,}729.43$ & $5{,}564.79$ \\
-\midrule
-sos  & ema\_independent & 30 & $3{,}805.27$ & $1{,}285.29$ & $1{,}651{,}977.33$ & $1{,}206.81$ & $4{,}296.97$ & $4{,}834.21$ \\
-     & ema\_shared      & 30 & $2{,}237.57$ & $1{,}698.33$ & $2{,}884{,}337.13$ &   $617.00$ & $1{,}862.03$ & $7{,}142.09$ \\
-     & lma             & 30 &   $907.98$ &     $0.00$ &           $0.00$ &   $907.98$ &   $907.98$ &   $907.98$ \\
-     & sma             & 30 & $1{,}180.28$ &     $0.00$ &           $0.00$ & $1{,}180.28$ & $1{,}180.28$ & $1{,}180.28$ \\
-     & weighted        & 30 & $4{,}580.57$ &   $477.97$ &   $228{,}457.58$ & $2{,}050.89$ & $4{,}660.90$ & $4{,}694.26$ \\
+abo  & weighted        & $4{,}453.79$ & $1{,}124.67$ & $0.253$ & $4{,}620.62$ & $6{,}498.67$ \\
+aos  & weighted        & $4{,}606.32$ & $831.97$     & $0.181$ & $4{,}745.43$ & $5{,}920.21$ \\
+gps  & weighted        & $2{,}302.15$ & $1{,}651.62$ & $0.717$ & $1{,}891.33$ & $5{,}610.75$ \\
+mrfo & weighted        & $4{,}570.30$ & $977.47$     & $0.214$ & $4{,}755.59$ & $7{,}604.38$ \\
+pso  & weighted        & $4{,}510.11$ & $993.36$     & $0.220$ & $4{,}766.00$ & $5{,}965.44$ \\
+sos  & weighted        & $4{,}840.99$ & $516.32$     & $0.107$ & $4{,}749.80$ & $5{,}889.75$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Using fixed run as reference, according to table \ref{tab:algo_performance_fixed}., 
-variance within winning strategies differed substantially.
-\texttt{weighted}-strategy bots converged with median around $\$4{,}600$
-to $\$4{,}730$ (for example PSO $\sigma = \$460$ | , $\mu = \$4{,}813$). In contrast,
-\texttt{ema\_shared} winners came from highly dispersed distributions
-(PSO $\sigma = \$2{,}176$ | $\mu = \$2{,}468$ ), consistent with random discovery rather than 
-reliable optimisation: a single PSO run on this strategy
-might produce $\$292$ (losing money) or \text{maximum} single instance of $\$10{,}074$, 
-with little predictability from training fitness.
-
-Referring to table \ref{tab:algo_run_details} 
-two MRFO run on \texttt{ema\_shared} (fixed initialisation, run 14 and random initialisation, run 1)
-converged to a test fitness of exactly $\$5{,}660.26$ matching the
-buy-and-hold baseline to six decimal places but got excluded. This is not coincidence: the
-optimiser identified an MA-crossover parameter set that executes precisely
-one buy at the start of the test period and one sell at the end, replicating
-passive holding under the matched fee structure. 
-
-\begin{table}[ht]
-\centering
-\caption{\label{tab:algo_run_details}%
-Detailed performance metrics of individual optimization runs, categorized by algorithm, strategy, and initialization mode.}
-\small
-\begin{tabular}{llcrrrr}
-\toprule
-\textbf{Algo} & \textbf{Strategy} & \textbf{Run ID} & \textbf{Start Mode} & \textbf{Train Final Cash} & \textbf{Test Final Cash} \\
-\midrule
-mrfo & ema\_shared      & 19 & random & $94{,}671.432702$ & $11{,}973.202678$ \\
-pso  & ema\_shared      & 15 & fixed  & $103{,}623.884175$ & $10{,}074.639102$ \\
-sos  & ema\_shared      & 14 & random & $99{,}739.498022$ & $7{,}860.381078$ \\
-aos  & ema\_shared      & 25 & random & $53{,}162.066536$ & $7{,}860.381078$ \\
-abo  & ema\_shared      & 6  & random & $61{,}669.572182$ & $7{,}795.072801$ \\
-aos  & ema\_independent & 3  & fixed  & $8{,}387.916226$  & $7{,}478.455514$ \\
-sos  & ema\_shared      & 22 & fixed  & $104{,}921.108049$ & $7{,}142.090134$ \\
-aos  & ema\_independent & 1  & random & $7{,}387.991921$  & $7{,}041.993653$ \\
-sos  & ema\_shared      & 4  & fixed  & $85{,}227.061950$  & $6{,}859.085979$ \\
-sos  & ema\_shared      & 3  & random & $120{,}633.526793$ & $6{,}661.169413$ \\
-aos  & ema\_shared      & 11 & random & $34{,}442.798674$  & $6{,}144.024916$ \\
-abo  & ema\_shared      & 6  & fixed  & $82{,}411.179264$  & $6{,}138.875681$ \\
-pso  & ema\_shared      & 0  & fixed  & $79{,}852.603444$  & $6{,}128.390758$ \\
-pso  & weighted        & 28 & random & $13{,}408.479220$  & $5{,}965.439091$ \\
-abo  & ema\_shared      & 14 & random & $76{,}429.269569$  & $5{,}906.325814$ \\
-abo  & weighted        & 9  & random & $10{,}015.651104$  & $5{,}853.488490$ \\
-abo  & weighted        & 24 & random & $10{,}757.072994$  & $5{,}767.026518$ \\
-aos  & ema\_independent & 28 & fixed  & $6{,}960.173097$  & $5{,}744.356481$ \\
-aos  & weighted        & 6  & random & $11{,}633.609194$  & $5{,}737.972241$ \\
-abo  & weighted        & 8  & fixed  & $11{,}447.583852$  & $5{,}691.006969$ \\
-gps  & ema\_independent & 4  & fixed  & $7{,}365.586603$   & $5{,}684.316408$ \\
-mrfo & weighted        & 20 & random & $11{,}545.351863$  & $5{,}680.524618$ \\
-abo  & weighted        & 23 & random & $10{,}582.572136$  & $5{,}677.242799$ \\
-aos  & ema\_independent & 7  & fixed  & $6{,}152.365887$  & $5{,}675.507260$ \\
-mrfo & weighted        & 14 & random & $11{,}877.068017$  & $5{,}670.184694$ \\
-mrfo & ema\_shared      & 14 & fixed  & $79{,}302.563503$  & $5{,}660.263187$ \\
-mrfo & ema\_shared      & 1  & random & $49{,}408.611819$  & $5{,}660.263187$ \\
-\bottomrule
-\end{tabular}
-\end{table}
+Variance within the two winning strategies differs substantially
+(Table~\ref{tab:perf_test}). \texttt{weighted}-strategy bots converge tightly
+--- every algorithm except GPS has a test CV below $0.26$, and SOS reaches
+$\textrm{CV} = 0.107$ around a median of $\$4{,}750$. In contrast,
+\texttt{ema\_shared} winners come from highly dispersed distributions: test
+CV exceeds $0.85$ for every algorithm and exceeds $1.0$ for GPS, around a
+median pinned at the no-trade floor of $\$1{,}000$. This dispersion is the
+signature of stochastic discovery rather than reliable optimisation: a
+\texttt{weighted} win is a comparatively repeatable outcome, whereas an
+\texttt{ema\_shared} win is a draw from a long right tail above an otherwise
+collapsed distribution.
 
 \subsection{Test Results --- Statistical Differentiation}
 
@@ -263,19 +291,39 @@ mrfo & ema\_shared      & 1  & random & $49{,}408.611819$  & $5{,}660.263187$ \\
 \end{figure}
 %TC:endignore
 
-On test data, the significant pairwise differences observed during training
-largely disappear (Figure~\ref{fig:dunn_test}). The most extreme case is
+On test data, the strong pairwise differences observed during training
+largely collapse (Figure~\ref{fig:dunn_test}). The most extreme case is
 \texttt{ema\_shared}: under both fixed and random initialisation, every
-pairwise $p$-value equals $1.000$. All six algorithms produce statistically
-indistinguishable test fitness distributions. The algorithms that were most
-differentiated during training, particularly the PSO-SOS-AOS cluster
-versus GPS converge to similar test performance across strategies.
-The exception is \texttt{lma} fixed initialisation, where GPS achieves the
-highest test median ($\$948$) of all six algorithms. Inspecting GPS,
-the test median ($\$948$ lma and $\$1056$ sma) is actually higher
-than train median ($\$445$ lma and $\$572$ sma) this might indicate
-either (i) coincidence from fixed point initialization or (ii) the greedy
-local search nature incidentally helped GPS to have better generalization.
+pairwise $p$-value equals $1.000$, and the Kruskal--Wallis test is itself
+non-significant ($H = 0.60$, $p = 0.99$ fixed; $H = 1.51$, $p = 0.91$
+random; Table~\ref{tab:kruskal_wallis}). All six algorithms produce
+statistically indistinguishable test fitness distributions on the strategy
+that produced the most baseline-beating runs --- a direct indication that
+those wins are not attributable to optimiser quality.
+
+The one strategy that retains strong test-side differentiation is
+\texttt{ema\_independent} ($H = 184.26$ fixed, $179.13$ random). Here the
+training-stage divergence within the PSO--SOS--AOS cluster persists onto
+test, but in a specific direction: PSO and SOS retain high test medians
+(pooled medians $\$4{,}435$ and $\$4{,}566$ respectively), whereas AOS
+collapses to a pooled test median of $\$1{,}105$ --- close to ABO
+($\$1{,}239$) and MRFO ($\$1{,}000$), and well below GPS ($\$1{,}982$). AOS
+trains to a high \texttt{ema\_independent} fitness but does not retain it
+out-of-sample. Since the structural difference between AOS and PSO/SOS most
+relevant here is the absence of per-agent personal-best memory in AOS, this
+at least suggests that personal-best memory aids generalisation on the most
+expressive landscape; however, the present design does not isolate memory as
+a variable, so this remains a hypothesis for targeted future work rather than
+a demonstrated mechanism.
+
+A caution applies to all surviving test-side significances. A significant
+rank difference on test fitness, on strategies where a large fraction of runs
+sit at broken fixed points (no-trade $\$1{,}000$, and the strategy-specific
+SMA and LMA fixed points --- together roughly $32\%$ of all 3{,}000 runs),
+can reflect differences in \emph{how often} an algorithm falls into a
+degenerate basin as much as differences in genuine optimisation quality.
+Statistical significance here should not be read directly as a difference in
+trading skill.
 
 \subsection{Why Training Fitness Did Not Predict Test Fitness}
 
@@ -285,126 +333,171 @@ local search nature incidentally helped GPS to have better generalization.
   \includegraphics[width=0.7\textwidth]{images/train_test_spearman.png}
   \caption{\label{fig:spearman}%
     Spearman rank correlation between training and test fitness per strategy
-    (both initialisation modes pooled, $n=360$ per strategy).
+    (both initialisation modes pooled, $n=600$ per strategy).
     $\rho = 0$ corresponds to no rank transfer.}
 \end{figure}
 %TC:endignore
 
 Train--test rank correlation (Spearman's $\rho$ on per-run fitness pairs,
-both initialisation modes combined) reveals a structural pattern
-(Figure~\ref{fig:spearman}). \texttt{sma} ($d=2$) shows $\rho = 0.67$: 
-if an optimiser ranks high on training, it ranks high on
-test. \texttt{ema\_independent} ($d=4$) shows $\rho = 0.48$,
-indicating moderate but reliable transfer. \texttt{lma} ($d=2$) follows at
-$\rho = 0.31$. \texttt{weighted} ($d=14$) is weak and only marginally
-significant ($\rho = 0.12$, $p = 0.026$). \texttt{ema\_shared} ($d=3$) shows
-no detectable transfer ($\rho = 0.07$, $p = 0.18$, n.s.).
+both initialisation modes pooled, $n = 600$ per strategy) reveals a
+structural pattern (Figure~\ref{fig:spearman}). \texttt{sma} ($d=2$) shows
+the strongest transfer, $\rho = 0.66$ ($p = 1.9 \times 10^{-77}$): an
+optimiser that ranks high on training tends to rank high on test.
+\texttt{ema\_independent} ($d=4$) follows at $\rho = 0.38$
+($p = 3.6 \times 10^{-22}$), \texttt{weighted} ($d=14$) at $\rho = 0.34$
+($p = 2.3 \times 10^{-17}$), and \texttt{lma} ($d=2$) at $\rho = 0.31$
+($p = 7.3 \times 10^{-15}$) --- all moderate but statistically reliable.
+\texttt{ema\_shared} ($d=3$) shows no detectable transfer at all
+($\rho = 0.05$, $p = 0.20$, n.s.).
 
-The relationship is not strictly monotonic in dimensionality:
-\texttt{ema\_shared} ($d=3$) has worse transfer than \texttt{weighted}
-($d=14$), and the difference between \texttt{ema\_shared} and
-\texttt{ema\_independent} is a single additional parameter, decoupling the
-two EMAs' smoothing rates but produces a sevenfold change in $\rho$.
-This indicates that the \emph{nature} of the parameterisation matters as
-much as its size: a tightly-coupled $d=3$ space can produce less generalisable
-optima than a decoupled $d=4$ space or even a $d=14$ weighted combination.
+The relationship is not monotonic in dimensionality. \texttt{ema\_shared}
+($d=3$) has the \emph{worst} transfer of any strategy, worse than the $d=14$
+\texttt{weighted} space; and the only structural difference between
+\texttt{ema\_shared} and \texttt{ema\_independent} is a single parameter ---
+decoupling the two EMAs' smoothing rates --- yet that one change moves $\rho$
+from $0.05$ to $0.38$. This indicates that the \emph{nature} of the
+parameterisation matters more than its size: a tightly-coupled $d=3$ space
+can yield markedly less generalisable optima than a decoupled $d=4$ space or
+even a $d=14$ weighted combination.
 
-Ironically, the two strategies with the most test-set wins (\texttt{ema\_shared}: 13;
-\texttt{weighted}: 8) are also the two with the lowest train--test
-correlations. Their wins represent stochastic discovery, not reliable
-optimisation: a reading of $\rho = 0.07$ should not expect any
-optimiser's training performance to inform its test outcome on
-\texttt{ema\_shared}. The strategies where training rank \emph{does} predict
-test rank (\texttt{sma}, \texttt{ema\_independent}, \texttt{lma}) are
-predictably mediocre on test meaning their best-training algorithm is also their
-best-test algorithm, but neither beats the baseline. This is the
-descriptiveness-versus-search-space trade-off realised empirically: higher
-expressiveness produced higher training fitness ($\$100{,}000{+}$ medians on
-\texttt{ema\_shared}) but transferred no useful information to held-out test data.
+The result is ironic. The two strategies with the most
+baseline-beating test runs --- \texttt{ema\_shared} (34 wins) and
+\texttt{weighted} (26 wins) --- are exactly the two with the weakest
+train--test transfer ($\rho = 0.05$ and $\rho = 0.34$), while \texttt{sma},
+which has the strongest transfer ($\rho = 0.66$), produced zero wins across
+600 runs. Win rate in this experiment is, if anything, \emph{anti}-correlated
+with the reliability of optimisation. The \texttt{ema\_shared} wins in
+particular cannot be credited to any optimiser: with $\rho = 0.05$, training
+performance carries no information about test outcome, so a winning run is a
+draw from a long right tail rather than the product of effective search. The
+strategies where training rank \emph{does} predict test rank
+(\texttt{sma}, \texttt{lma}, \texttt{ema\_independent}) are predictably
+mediocre on test: their best-training algorithm is also their best-test
+algorithm, but neither beats the baseline. Higher expressiveness produced
+much higher training fitness yet transferred little or no useful information
+to held-out test data.
 
-\subsection{Which Algorithm Performs Best}
 \begin{table}[ht]
 \centering
-\caption{\label{tab:algo_performance_fixed_cv}%
-Updated statistical summary of performance metrics sorted by strategy configuration and 
-coefficient of variation (CV) under the \texttt{fixed} start mode across 30 runs per cell.}
-\small % Slightly smaller font to fit within page margins cleanly
-\begin{tabular}{llrrrrrrrr}
+\caption{\label{tab:algo_run_details}%
+The 20 highest test-fitness runs across all 3{,}000 trials. Training fitness
+is shown alongside for comparison: the ordering by test fitness bears little
+relation to the ordering by training fitness.}
+\small
+\begin{tabular}{llcrr}
 \toprule
-\textbf{Algo} & \textbf{Strategy} & \textbf{Count} & \textbf{Mean} & \textbf{Std} & \textbf{CV} & \textbf{Var} & \textbf{Min} & \textbf{Median} & \textbf{Max} \\
+\textbf{Algo} & \textbf{Strategy} & \textbf{Start} & \textbf{Train Cash} & \textbf{Test Cash} \\
 \midrule
-mrfo & ema\_independent & 30 & $1{,}000.0000$ & $0.0000$ & $0.0000$ & $0.0000$ & $1{,}000.0000$ & $1{,}000.0000$ & $1{,}000.0000$ \\
-aos  & ema\_independent & 30 & $4{,}271.8511$ & $1{,}401.7027$ & $0.3281$ & $1{,}964{,}770.5024$ & $977.9262$ & $4{,}425.3908$ & $7{,}478.4555$ \\
-sos  & ema\_independent & 30 & $3{,}805.2664$ & $1{,}285.2927$ & $0.3378$ & $1{,}651{,}977.3254$ & $1{,}206.8093$ & $4{,}296.9697$ & $4{,}834.2114$ \\
-pso  & ema\_independent & 30 & $3{,}219.7871$ & $1{,}460.6491$ & $0.4536$ & $2{,}133{,}495.7079$ & $1{,}201.2297$ & $4{,}296.9697$ & $4{,}565.8008$ \\
-abo  & ema\_independent & 30 & $1{,}482.4498$ & $994.6911$ & $0.6710$ & $989{,}410.4156$ & $858.1458$ & $1{,}202.4195$ & $4{,}360.9038$ \\
-gps  & ema\_independent & 30 & $2{,}328.6670$ & $1{,}619.2726$ & $0.6954$ & $2{,}622{,}043.6733$ & $509.7981$ & $1{,}588.7568$ & $5{,}684.3164$ \\
-\midrule
-aos  & ema\_shared      & 30 & $1{,}894.0325$ & $1{,}269.0238$ & $0.6700$ & $1{,}610{,}421.4700$ & $603.2835$ & $1{,}137.1210$ & $4{,}377.1504$ \\
-sos  & ema\_shared      & 30 & $2{,}237.5683$ & $1{,}698.3336$ & $0.7590$ & $2{,}884{,}337.1312$ & $617.0044$ & $1{,}862.0257$ & $7{,}142.0901$ \\
-abo  & ema\_shared      & 30 & $1{,}815.8120$ & $1{,}391.7397$ & $0.7665$ & $1{,}936{,}939.2930$ & $633.3265$ & $1{,}157.6009$ & $6{,}138.8757$ \\
-gps  & ema\_shared      & 30 & $1{,}831.8888$ & $1{,}465.6274$ & $0.8001$ & $2{,}148{,}063.7275$ & $462.4916$ & $1{,}000.0000$ & $4{,}584.5951$ \\
-mrfo & ema\_shared      & 30 & $1{,}606.1015$ & $1{,}366.8988$ & $0.8511$ & $1{,}868{,}412.3809$ & $484.1837$ & $1{,}000.0000$ & $5{,}660.2632$ \\
-pso  & ema\_shared      & 30 & $2{,}468.1415$ & $2{,}176.0318$ & $0.8816$ & $4{,}735{,}114.2306$ & $824.6249$ & $1{,}000.0000$ & $10{,}074.6391$ \\
-\midrule
-sos  & lma             & 30 & $907.9777$ & $0.0000$ & $0.0000$ & $0.0000$ & $907.9777$ & $907.9777$ & $907.9777$ \\
-aos  & lma             & 30 & $794.0966$ & $176.2895$ & $0.2220$ & $31{,}077.9891$ & $485.4056$ & $907.9777$ & $921.2818$ \\
-pso  & lma             & 30 & $587.2506$ & $135.8814$ & $0.2314$ & $18{,}463.7669$ & $487.7403$ & $487.7403$ & $907.9777$ \\
-gps  & lma             & 30 & $879.1397$ & $221.1375$ & $0.2515$ & $48{,}901.8002$ & $378.9697$ & $942.9760$ & $1{,}228.5388$ \\
-mrfo & lma             & 30 & $749.9327$ & $200.3511$ & $0.2672$ & $40{,}140.5782$ & $487.7403$ & $907.9777$ & $907.9777$ \\
-abo  & lma             & 30 & $683.1384$ & $187.4051$ & $0.2743$ & $35{,}120.6796$ & $487.7403$ & $671.5093$ & $907.9777$ \\
-\midrule
-mrfo & sma             & 30 & $1{,}180.2757$ & $0.0000$ & $0.0000$ & $0.0000$ & $1{,}180.2757$ & $1{,}180.2757$ & $1{,}180.2757$ \\
-sos  & sma             & 30 & $1{,}180.2757$ & $0.0000$ & $0.0000$ & $0.0000$ & $1{,}180.2757$ & $1{,}180.2757$ & $1{,}180.2757$ \\
-abo  & sma             & 30 & $1{,}172.2460$ & $12.4752$ & $0.0106$ & $155.6317$ & $1{,}153.5101$ & $1{,}180.2757$ & $1{,}180.2757$ \\
-aos  & sma             & 30 & $1{,}172.2460$ & $12.4752$ & $0.0106$ & $155.6317$ & $1{,}153.5101$ & $1{,}180.2757$ & $1{,}180.2757$ \\
-pso  & sma             & 30 & $1{,}129.0634$ & $142.7064$ & $0.1264$ & $20{,}365.1027$ & $617.3679$ & $1{,}180.2757$ & $1{,}180.2757$ \\
-gps  & sma             & 30 & $1{,}154.9955$ & $216.3662$ & $0.1873$ & $46{,}814.3537$ & $725.7645$ & $1{,}104.1544$ & $1{,}740.1289$ \\
-\midrule
-pso  & weighted        & 30 & $4{,}813.3528$ & $460.0434$ & $0.0956$ & $211{,}639.9732$ & $3{,}637.1189$ & $4{,}729.4264$ & $5{,}564.7885$ \\
-sos  & weighted        & 30 & $4{,}580.5727$ & $477.9724$ & $0.1043$ & $228{,}457.5786$ & $2{,}050.8875$ & $4{,}660.9005$ & $4{,}694.2637$ \\
-abo  & weighted        & 30 & $4{,}451.6966$ & $817.0929$ & $0.1835$ & $667{,}640.8260$ & $1{,}130.4039$ & $4{,}651.6147$ & $5{,}691.0070$ \\
-aos  & weighted        & 30 & $4{,}465.4214$ & $830.2398$ & $0.1859$ & $689{,}298.1441$ & $1{,}000.0000$ & $4{,}676.3205$ & $5{,}500.0430$ \\
-mrfo & weighted        & 30 & $4{,}329.0829$ & $1{,}145.6547$ & $0.2646$ & $1{,}312{,}524.6257$ & $1{,}381.9554$ & $4{,}694.2197$ & $5{,}644.1051$ \\
-gps  & weighted        & 30 & $2{,}904.4636$ & $1{,}852.4269$ & $0.6378$ & $3{,}431{,}485.2697$ & $370.9620$ & $3{,}688.6018$ & $5{,}093.2604$ \\
+gps  & ema\_shared & fixed  & $16{,}290.48$  & $9{,}614.94$ \\
+gps  & ema\_shared & fixed  & $16{,}290.48$  & $9{,}614.94$ \\
+gps  & ema\_shared & random & $16{,}290.48$  & $9{,}614.94$ \\
+gps  & ema\_shared & random & $16{,}290.48$  & $9{,}614.94$ \\
+abo  & ema\_shared & random & $54{,}301.41$  & $8{,}795.49$ \\
+sos  & ema\_shared & fixed  & $166{,}428.24$ & $8{,}663.88$ \\
+sos  & ema\_shared & fixed  & $128{,}331.33$ & $8{,}392.40$ \\
+sos  & ema\_shared & fixed  & $114{,}909.60$ & $8{,}392.40$ \\
+gps  & ema\_shared & fixed  & $47{,}972.89$  & $8{,}392.40$ \\
+pso  & ema\_shared & random & $138{,}076.13$ & $8{,}392.40$ \\
+sos  & ema\_shared & random & $87{,}164.40$  & $8{,}392.40$ \\
+gps  & ema\_shared & random & $30{,}519.05$  & $8{,}392.40$ \\
+pso  & ema\_shared & fixed  & $80{,}647.43$  & $8{,}267.02$ \\
+mrfo & ema\_shared & random & $125{,}386.17$ & $7{,}660.07$ \\
+mrfo & weighted    & random & $48{,}030.39$  & $7{,}604.38$ \\
+mrfo & ema\_shared & fixed  & $105{,}631.68$ & $7{,}586.17$ \\
+abo  & ema\_shared & random & $71{,}590.32$  & $7{,}499.73$ \\
+aos  & ema\_shared & random & $41{,}659.30$  & $7{,}284.67$ \\
+pso  & ema\_shared & random & $115{,}538.41$ & $7{,}226.59$ \\
+pso  & ema\_shared & fixed  & $107{,}480.63$ & $7{,}185.07$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Across fixed-initialisation test results as per table \ref{tab:algo_performance_fixed_cv}, no algorithm demonstrated
-consistent dominance. PSO and SOS produced the strongest combination of
-median performance and stability on \texttt{weighted}
-(PSO: median $= \$4{,}729$, $\textrm{CV} = 0.095$;
-SOS: median $= \$4{,}661$, $\textrm{CV} = 0.104$),
-while AOS and SOS led on \texttt{ema\_independent}
-(AOS median $= \$4{,}425$; SOS median $= \$4{,}297$).
-Apparent stability on \texttt{sma} and \texttt{lma}
-(MRFO, SOS: $\textrm{CV} = 0.000$) reflects convergence
-to degenerate fixed points rather than reliable optimisation ---
-zero variance indicates collapse, not robustness.
-This strategy-dependence of relative algorithm performance
-is consistent with the No Free Lunch theorem~\cite{wolpert1997}:
-no algorithm dominates uniformly across fitness landscapes,
-and the landscape structure --- determined by strategy choice ---
-matters more than algorithm choice in this experimental setting.
+Table~\ref{tab:algo_run_details} exposes the failure of generalisation
+directly. The single highest test result in the entire study --- $\$9{,}615$,
+achieved by four separate GPS \texttt{ema\_shared} runs --- came from a
+training fitness of only $\$16{,}290$, an order of magnitude below the
+training fitness of runs that tested far lower (SOS reached $\$166{,}428$ in
+training yet tested at $\$8{,}664$). That four distinct GPS runs converged to
+\emph{exactly} $\$16{,}290.48$ in training and \emph{exactly} $\$9{,}614.94$
+on test indicates a flat region of the fitness landscape: multiple parameter
+settings yield identical fitness, so training fitness cannot discriminate
+among them. Selecting bots by training fitness would therefore not have
+selected the bots that generalised best --- and on \texttt{ema\_shared} it
+would have actively selected worse ones.
+
+\subsection{Which Algorithm Performs Best}
+
+The question of which optimiser performs best does not have a clean answer in
+this setting, and the more defensible reading is that the experiment cannot
+rank optimisers on out-of-sample trading performance at all. With only
+$2.07\%$ of all runs exceeding the passive baseline, and with those wins
+concentrated on the two strategies where training fitness does not transfer,
+there is no reliable test-side signal to separate the optimisers on the
+metric that matters.
+
+What can be stated holds with care. On \texttt{ema\_independent} test
+fitness, SOS and PSO are the strongest performers (SOS pooled median
+$\$4{,}566$, $\textrm{CV} = 0.361$; PSO pooled median $\$4{,}435$,
+$\textrm{CV} = 0.452$), while AOS collapses despite leading the same
+strategy on \emph{training} fitness. On \texttt{weighted} test fitness, PSO,
+SOS, AOS, and MRFO show comparable medians near $\$4{,}750$. No single
+algorithm achieves both high training fitness and reliable test transfer.
+The apparent stability of MRFO and SOS on \texttt{sma} and \texttt{lma}
+($\textrm{CV} = 0.000$) reflects convergence to broken fixed points, not
+robustness --- zero variance there indicates collapse. A further pattern
+worth noting is that GPS, the deliberately weak single-state baseline,
+exhibits the smallest train-to-test gap of any algorithm. This is not a
+generalisation advantage: GPS simply never reaches the high training fitness
+that the population methods do, so it has little fitness to lose on transfer.
+Its small gap reflects weak optimisation on both splits rather than robust
+optimisation on either.
+
+This strategy-dependence of relative algorithm performance is consistent with
+the No Free Lunch theorem~\cite{wolpert1997}: no algorithm dominates
+uniformly across fitness landscapes. In this experiment the landscape
+structure --- set by the choice of strategy --- accounts for far more of the
+variation in outcomes than the choice of optimiser does.
 
 \subsection{Interpretation}
 
-Two non-exclusive explanations account for the failure of training fitness to
-generalise. The first is overfitting to the training market regime:
-parameters optimised on the pre-2020 BTC market exploit structural patterns
---- momentum cycles, volatility regimes --- specific to that period. The
-COVID-19 crash, the 2021 bull run, and the 2022 bear market introduce
-qualitatively different dynamics that these parameters are not positioned to
-exploit.
+The near-universal failure of training fitness to transfer to test is best
+attributed to the evaluation setup rather than to any optimiser. The
+decisive evidence is that the train-to-test fitness gap scales with an
+algorithm's \emph{optimisation success}, not with its identity: GPS, which
+reaches a pooled training median far below the population methods, has a
+train/test ratio near $1.0$ and does not overfit, whereas SOS, which reaches
+the highest training fitness, shows the largest gap. Within
+\texttt{ema\_shared}, training medians span from $\$7{,}900$ (GPS) to
+$\$128{,}000$ (SOS) while every algorithm's test median sits at exactly
+$\$1{,}000$ (Table~\ref{tab:perf_train} versus Table~\ref{tab:perf_test}).
+An optimiser maximising the stated objective therefore buys no test
+improvement. This is the signature of a misspecified objective being
+optimised faithfully, not of a defective optimiser.
 
-The second explanation is that MA crossover signals are fundamentally weak
-predictors of BTC price movement across diverse regimes regardless of how
-precisely the parameters are tuned; if strategy expressiveness is the
+Two non-exclusive mechanisms underlie this. The first is overfitting to the
+training market regime: the fitness function rewards raw final cash over a
+single continuous pass of the pre-2020 BTC series, with no penalty for
+path-specificity, trade count, or drawdown, leaving the optimiser free to
+fit parameter sets to the particular price path of 2014--2019. The COVID-19
+crash, the 2021 bull run, and the 2022 bear market introduce qualitatively
+different dynamics that such parameters are not positioned to exploit; the
+pre-2020/post-2020 split is, by construction, an out-of-distribution stress
+test that punishes exactly this memorisation. The second is that MA-crossover
+signals may be fundamentally weak predictors of BTC price movement across
+regimes regardless of parameter tuning: if strategy expressiveness is the
 binding constraint, no optimiser can recover transferable advantage from the
-parameter space. The $1.44\%$ rate of bots exceeding buy-and-hold across
-1{,}800 trials is statistically consistent with random sampling from the
-strategy-fitness right tail, and does not provide evidence of a learnable
-trading edge under the MA-crossover hypothesis space. This is consistent
-with --- though does not formally test --- the efficient market hypothesis
-for short-horizon technical signals on highly liquid assets.
+parameter space. The $2.07\%$ rate of bots exceeding buy-and-hold across
+3{,}000 trials is consistent with sampling from the right tail of a
+high-variance distribution and does not constitute evidence of a learnable
+trading edge under the MA-crossover hypothesis space --- a result consistent
+with, though not a formal test of, the efficient market hypothesis for
+short-horizon technical signals on highly liquid assets.
+
+These two mechanisms cannot be separated with the present data, because doing
+so requires a counterfactual the current design does not include: the same
+optimisers run against a risk-adjusted objective (for example a Sharpe ratio
+or return-per-trade metric) under the same train/test split. If the
+train--test gap narrows under such an objective, the raw-cash fitness
+function was the dominant cause; if it persists, market non-stationarity
+dominates. Distinguishing the two is left as the primary item of future
+work.
