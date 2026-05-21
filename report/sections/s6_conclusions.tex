@@ -2,58 +2,67 @@
 
 Algorithm choice has a universally significant effect on training fitness
 across all strategy and initialisation conditions, yet this advantage does
-not transfer to test performance. The binding constraint appears to be
-strategy expressiveness in the face of market non-stationarity rather than
-optimiser quality: once the target regime shifts, the parameters optimised on
-training data no longer generalise regardless of how effectively they were found.
+not transfer to test performance. The binding constraint is strategy
+expressiveness in the face of market non-stationarity: once the target regime
+shifts, optimised parameters no longer generalise regardless of how
+effectively they were found.
 
-AOS performs comparably to PSO despite lacking personal best memory. On this
-multimodal fitness landscape, global best guidance via nucleus tracking
-combined with shell-based population distribution appears sufficient; the
-additional per-particle history that PSO maintains provides no statistically
-significant advantage. This is a finding specific to the problem structure
---- the MA crossover landscape may not present the kind of elongated,
-directional ridges where personal memory typically helps.
+The near-universal training-to-test failure is best attributed to a
+misspecified objective rather than defective optimisers. The decisive
+evidence is that the train-to-test gap scales with optimisation
+\emph{success}, not algorithm identity: GPS, with the lowest training
+fitness, has a train/test ratio near $1.0$; SOS, with the highest, shows the
+largest gap. Within \texttt{ema\_shared}, training medians span
+$\$7{,}900$--$\$128{,}000$ while every algorithm's test median sits at
+$\$1{,}000$ (Tables~\ref{tab:perf_train},~\ref{tab:perf_test}). Two
+non-exclusive mechanisms underlie this: overfitting to the 2014--2019 price
+path, and MA-crossover signals being fundamentally weak predictors across
+regimes. The $2.07\%$ baseline-beating rate is consistent with right-tail
+sampling rather than a learnable edge --- consistent with, though not a
+formal test of, the efficient market hypothesis for short-horizon technical
+signals.
 
-GPS confirms that population diversity is necessary. Single-state local
-search is consistently and significantly worse than every population-based
-method across all conditions. The MA parameter landscape contains enough
-local optima that a deterministic pattern search from a fixed starting point
-cannot reliably reach high-fitness regions, establishing population-based
-global search as a structural requirement rather than an optional improvement.
+\textbf{AOS vs PSO.} AOS performs comparably to PSO on training fitness
+despite lacking personal-best memory, suggesting that shell-based population
+distribution is sufficient on the lower-dimensional strategies. However, on
+\texttt{ema\_independent} AOS collapses on test (median $\$1{,}105$) while
+PSO and SOS retain high medians ($\$4{,}435$ and $\$4{,}566$). Since the
+primary structural difference is per-agent memory, this suggests personal-best
+history aids generalisation on the most expressive landscape --- though the
+present design does not isolate memory as a variable.
 
-SOS's three-evaluation-per-iteration cost is not justified by its performance
-differential over PSO. Because Dunn's test establishes distributional
-equivalence between PSO and SOS on training fitness under matched-iteration
-budgets, the threefold evaluation overhead buys no statistical advantage. A
-compute-normalised comparison equalising total fitness evaluations rather
-than iterations would be required to confirm this quantitatively, but the
-direction of the finding is clear.
+\textbf{GPS as baseline.} GPS is consistently and significantly worse than
+every population-based method on training fitness, confirming that
+population diversity is a structural requirement on this multimodal landscape,
+not an optional improvement. Its small train-to-test gap reflects weak
+optimisation on both splits rather than robustness.
 
-Independent $\alpha$ in \texttt{ema\_independent} provides genuinely greater
-expressiveness than the shared-$\alpha$ \texttt{ema\_shared} configuration.
-The expanded search space produces more pronounced inter-algorithm
-differences (higher Kruskal-Wallis $H$-statistics), indicating that the
-additional degrees of freedom challenge the optimisers' exploration
-capabilities in a way that better reveals their structural differences.
+\textbf{SOS compute cost.} SOS's three-evaluation-per-iteration overhead
+(wall-clock $\approx 4\times$ PSO) is not justified by its performance: Dunn's
+test finds no significant advantage over PSO under matched-iteration budgets.
 
-The LE degradation in AOS is an empirically observed phenomenon. The
-lowest-energy electron's role as a local-optima escape mechanism degrades as
-the nucleus shifts across iterations and other electrons improve, because the
-LE designation tracks relative ranking within the current population rather
-than an absolute landscape property. This is a genuine weakness in the
-paper's formulation that warrants further investigation.
+\textbf{Parameterisation structure.} Independent $\alpha$ in
+\texttt{ema\_independent} provides greater expressiveness than shared
+$\alpha$, producing higher $H$-statistics and cleaner algorithm separation.
+Critically, \texttt{ema\_shared} ($d=3$) transfers worse than the $d=14$
+\texttt{weighted} space ($\rho = 0.05$ vs $0.34$): parameterisation
+\emph{nature} matters more than size.
 
-The no-trade bad optimum is an unpenalised artifact of using raw final
-cash as the fitness metric. A risk-adjusted metric such as the Sharpe ratio
-or return-per-trade would penalise conservative non-trading behaviour and
-remove this fixed point from the feasible optima.
+\textbf{AOS-specific weakness.} The LE perturbation degrades across
+iterations as the LE designation tracks population rank rather than an
+absolute landscape property, reducing its escape effectiveness as the nucleus
+shifts. This is a genuine weakness in the published formulation.
+
+\textbf{No Free Lunch.} Strategy choice accounts for far more outcome
+variance than algorithm choice, consistent with the No Free Lunch
+theorem~\cite{wolpert1997}: no algorithm dominates uniformly across
+landscapes.
 
 \paragraph*{Outlook}
-Future work should adopt risk-adjusted fitness functions and regime-aware
-train/test splits that better reflect the non-stationarity of cryptocurrency
-markets. The train/test divergence observed here suggests the evaluation
-objective itself may require redesign: objectives that penalise in-sample
-overfitting --- for example, through cross-validated segment fitness or
-walk-forward testing --- would impose generalisation pressure that the
-current segment-average fitness does not provide.
+Future work should adopt risk-adjusted fitness functions (e.g.\ Sharpe ratio
+\cite{investopedia_sharpe_ratio}) and walk-forward or cross-validated
+evaluation to impose generalisation pressure. Separating the two failure
+mechanisms --- objective misspecification vs.\ market non-stationarity ---
+requires running the same optimisers against a risk-adjusted objective under
+the same split: if the gap narrows, the fitness function dominates; if it
+persists, regime shift dominates.
