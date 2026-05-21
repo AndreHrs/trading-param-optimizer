@@ -4,22 +4,13 @@ All six algorithms described in Section~\ref{sec:alg_overview} were
 evaluated. This section explains the rationale behind each inclusion and
 details the primary algorithm, AOS.
 
-\textit{GPS as a deliberate baseline.} The central empirical question is
-whether population-based global search is necessary on a moving-average (MA)
-parameter fitness landscape, or whether a single-state local optimiser is
-sufficient. GPS~\cite{torczon1997} has no population, no escape mechanism
-from local optima, and no memory of previously evaluated positions beyond the
-current best. Including it provides a direct lower bound: if GPS performs
-competitively, population diversity contributes little; if GPS underperforms
-consistently, the landscape demands it.
+\textit{GPS~\cite{torczon1997} as a deliberate baseline.}: with no population, no escape mechanism, 
+and no positional memory beyond the current best, it directly quantifies whether 
+population-based diversity is necessary on this landscape.
 
-\textit{PSO as a population-based benchmark.} PSO~\cite{shi1998} is one of
-the most extensively studied metaheuristics and provides a reliable
-population-based performance reference. It is also structurally related to
-AOS --- both use a global nucleus/best to guide the population --- making a
-paired comparison directly informative about the contribution of personal
-best memory. If AOS and PSO are statistically indistinguishable, per-particle
-historical memory may or may not add marginal benefit in this problem domain.
+\textit{PSO~\cite{shi1998} as a population-based benchmark.}and a structurally informative 
+paired comparison with AOS as both use a global best to guide the population, 
+so any performance difference isolates the contribution of per-particle personal-best memory.
 
 \textit{AOS as the physics-based algorithm compared to the others being
 biology-based.} The MA parameter fitness landscape is
@@ -40,6 +31,9 @@ more persistent population spread than PSO's convergent swarm behaviour,
 which collapses toward the global best over time. AOS was published in 2021
 and has not, to our knowledge, been applied to financial parameter
 optimisation in the literature.
+
+\textit{ABO, MRFO, and SOS are detailed in Deliverable 1} their characteristics
+are summarized in Table \ref{tab:alg_summary}
 
 The pseudocode below summarises the core AOS iteration:
 
@@ -79,12 +73,9 @@ empirically across runs and is logged per iteration; it is documented here
 rather than patched, as any correction would constitute a modification to the
 published algorithm.
 
-\textit{Metaparameter choices.} Population size was scaled with
-dimensionality --- larger populations were used for the $d=14$ weighted
-strategy to partially offset the curse of dimensionality. The shell count
-$n_\text{shells}$ is implemented as an upper cap rather than a fixed
+\textit{Metaparameter choices.} All algorithms were run with a population of 
+100 and a fixed iteration budget, ensuring a controlled per-iteration comparison.
+The shell count $n_\text{shells}$ is implemented as an upper cap rather than a fixed
 assignment: each iteration uses $\min(n_\text{shells}, |\text{remaining
 population}|)$ shells to prevent degenerate empty-shell states that can arise
-in high-dimensional runs where effective population diversity is reduced. The
-iteration budget was fixed uniformly across all six algorithms to ensure a
-controlled comparison of per-iteration effectiveness.
+in high-dimensional runs where effective population diversity is reduced.

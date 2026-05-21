@@ -13,6 +13,7 @@
 \end{figure}
 %TC:endignore
 
+%TC:ignore
 \begin{table}[h]
 \centering
 \caption{\label{tab:kruskal_wallis}%
@@ -41,6 +42,7 @@ weighted         & random & 224.80 & $1.4\times10^{-46}$ & 78.54  & $1.7\times10
 \bottomrule
 \end{tabular}
 \end{table}
+%TC:endignore
 
 The Kruskal--Wallis test was significant across all ten strategy $\times$
 initialisation combinations on training fitness ($p < 10^{-34}$ in every
@@ -92,6 +94,7 @@ disadvantage SOS relative to PSO. MRFO and ABO occupy intermediate positions
 that vary by strategy, with no consistent dominance pattern relative to the
 PSO--SOS--AOS cluster.
 
+%TC:ignore
 \begin{table}[ht]
 \centering
 \caption{\label{tab:perf_train}%
@@ -141,6 +144,7 @@ sos  & weighted        & $13{,}215.13$ & $549.20$     & $0.042$ & $13{,}242.64$ 
 \bottomrule
 \end{tabular}
 \end{table}
+%TC:endignore
 
 \subsection{Test Results --- Performance Against the Passive Baseline}
 
@@ -171,7 +175,6 @@ sos  & weighted        & $13{,}215.13$ & $549.20$     & $0.042$ & $13{,}242.64$ 
     \texttt{ema\_shared} reflects its long-tailed jackpot distribution
     rather than reliable optimisation.}
 \end{figure}
-%TC:endignore
 
 \begin{table}[h]
 \centering
@@ -198,7 +201,7 @@ sos  & 0 & 0 & 4 & 2 & 0 & 0 & 0 & 0 & 4 & 3 \\
 \bottomrule
 \end{tabular}
 \end{table}
-
+%TC:endignore
 A passive buy-and-hold strategy over the 2020--2022 test period, with
 matched $3\%$ entry and exit fees, produced $\$5{,}660.26$ from a $\$1{,}000$
 starting balance. Of the 3{,}000 optimised bots, only 62 ($2.07\%$) strictly
@@ -216,6 +219,7 @@ Section~\ref{sec:results} (Why Training Fitness Did Not Predict Test Fitness)
 shows, those are precisely the two strategies on which training fitness
 carries the least information about test fitness.
 
+%TC:ignore
 \begin{table}[ht]
 \centering
 \caption{\label{tab:perf_test}%
@@ -266,6 +270,7 @@ sos  & weighted        & $4{,}840.99$ & $516.32$     & $0.107$ & $4{,}749.80$ & 
 \bottomrule
 \end{tabular}
 \end{table}
+%TC:endignore
 
 Variance within the two winning strategies differs substantially
 (Table~\ref{tab:perf_test}). \texttt{weighted}-strategy bots converge tightly
@@ -377,6 +382,7 @@ algorithm, but neither beats the baseline. Higher expressiveness produced
 much higher training fitness yet transferred little or no useful information
 to held-out test data.
 
+%TC:ignore
 \begin{table}[ht]
 \centering
 \caption{\label{tab:algo_run_details}%
@@ -411,6 +417,7 @@ pso  & ema\_shared & fixed  & $107{,}480.63$ & $7{,}185.07$ \\
 \bottomrule
 \end{tabular}
 \end{table}
+%TC:endignore
 
 Table~\ref{tab:algo_run_details} exposes the failure of generalisation
 directly. The single highest test result in the entire study --- $\$9{,}615$,
