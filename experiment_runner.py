@@ -111,6 +111,134 @@ def run_single(algo, strategy, prices, hp_override=None, initial_population=None
     return run_fn(prices, **kwargs)
 
 
+def _get_initialization(start_mode, algo, strategy, run_id):
+    """Return (initial_population, initial_position) matching the batch runner."""
+    if start_mode == "random":
+        return None, None
+    if start_mode == "fixed":
+        if not os.path.exists(FIXED_POP_FILE):
+            generate_fixed_populations()
+        pop = np.load(FIXED_POP_FILE)[f"{strategy}_{run_id}"]
+        if algo == "gps":
+            return None, pop[0]
+        return pop, None
+    raise ValueError(f"start_mode must be 'fixed' or 'random', got {start_mode!r}")
+
+
+def reproduce_result(algo, strategy, run_id, start_mode, data_path="./data/BTC-Daily.csv"):
+    """
+    Re-run one experiment with the same initialization as the batch runner.
+
+    Parameters
+    ----------
+    algo : str
+        Optimizer name (e.g. "aos", "pso", "mrfo").
+    strategy : str
+        Signal strategy (e.g. "ema_shared", "sma", "weighted").
+    run_id : int
+        Run index (0 .. N_RUNS-1). Used as RNG seed for random starts.
+    start_mode : str
+        "fixed" or "random" — must match the CSV row you want to reproduce.
+    data_path : str
+        Path to the price CSV (default matches the batch runner).
+
+    Returns
+    -------
+    dict with keys:
+        optimizer, history, train_prices, test_prices,
+        short, long, buy_at, sell_at, equity_curve, final_cash,
+        short_test, long_test, buy_at_test, sell_at_test,
+        test_equity_curve, test_final_cash,
+        best_params, best_fitness, algo, strategy, run_id, start_mode
+    """
+    if algo not in ALGO_LIST:
+        raise ValueError(f"Unknown algo {algo!r}. Choose from {ALGO_LIST}")
+    if strategy not in STRATEGY_LIST:
+        raise ValueError(f"Unknown strategy {strategy!r}. Choose from {STRATEGY_LIST}")
+
+    train_p, _, test_p, _ = load_data(data_path)
+    initial_population, initial_position = _get_initialization(start_mode, algo, strategy, run_id)
+
+    opt = run_single(
+        algo, strategy, train_p,
+        initial_population=initial_population,
+        initial_position=initial_position,
+        seed=run_id,
+    )
+
+    _, _, sig_fn, reeval_fn = _get_runner(algo, strategy)
+    best_params = opt.get_best_params()
+    short, long, buy_at, sell_at, equity_curve, final_cash = reeval_fn(best_params, train_p, sig_fn)
+    short_test, long_test, buy_at_test, sell_at_test, test_equity_curve, test_final_cash = reeval_fn(
+        best_params, test_p, sig_fn
+    )
+
+    return {
+        "optimizer": opt,
+        "history": opt.history,
+        "train_prices": train_p,
+        "test_prices": test_p,
+        "short": short,
+        "long": long,
+        "buy_at": buy_at,
+        "sell_at": sell_at,
+        "equity_curve": equity_curve,
+        "final_cash": final_cash,
+        "short_test": short_test,
+        "long_test": long_test,
+        "buy_at_test": buy_at_test,
+        "sell_at_test": sell_at_test,
+        "test_equity_curve": test_equity_curve,
+        "test_final_cash": test_final_cash,
+        "best_params": best_params,
+        "best_fitness": opt.best_fitness,
+        "algo": algo,
+        "strategy": strategy,
+        "run_id": run_id,
+        "start_mode": start_mode,
+    }
+
+
+def plot_reproduce_result(result, split="both"):
+    """
+    Plot train and/or test results from reproduce_result().
+
+    Parameters
+    ----------
+    result : dict
+        Output of reproduce_result().
+    split : str
+        "train", "test", or "both" (default).
+    """
+    import importlib
+
+    plot_fn = importlib.import_module(f"runners.{result['algo']}.plot").plot_equity_and_purchases
+    label = f"{result['algo']} {result['strategy']} run {result['run_id']} ({result['start_mode']})"
+
+    if split in ("train", "both"):
+        plot_fn(
+            result["optimizer"],
+            result["train_prices"],
+            result["short"],
+            result["long"],
+            result["buy_at"],
+            result["sell_at"],
+            title=f"{label} — train",
+        )
+
+    if split in ("test", "both"):
+        plot_fn(
+            result["optimizer"],
+            result["test_prices"],
+            result["short_test"],
+            result["long_test"],
+            result["buy_at_test"],
+            result["sell_at_test"],
+            title=f"{label} — test",
+            equity_curve=result["test_equity_curve"],
+        )
+
+
 def collect_row(opt, algo, strategy, run_id, start_mode, train_prices, test_prices, hyperparams_used):
     _, _, sig_fn, reeval_fn = _get_runner(algo, strategy)
     best_params = opt.get_best_params()
@@ -137,7 +265,11 @@ def collect_row(opt, algo, strategy, run_id, start_mode, train_prices, test_pric
 # ==================
 # PARALLEL HELPERS
 # ==================
-# train_prices / test_prices are module-level globals that is inherited by forked workers without reloading.
+# train_prices / test_prices are set in _main() before parallel runs; forked workers inherit them.
+train_prices = None
+test_prices = None
+
+
 def _run_task(args):
     algo, strategy, run_id, mode, initial_population, initial_position = args
     opt = run_single(algo, strategy, train_prices,
@@ -219,21 +351,27 @@ def run_fixed():
     _save_results(_run_parallel(tasks), FIXED_CSV)
 
 
-os.makedirs(RESULTS_DIR, exist_ok=True)
-train_prices, _, test_prices, _ = load_data("./data/BTC-Daily.csv")
+def _main():
+    global train_prices, test_prices
+    os.makedirs(RESULTS_DIR, exist_ok=True)
+    train_prices, _, test_prices, _ = load_data("./data/BTC-Daily.csv")
 
-if RUN_RANDOM:
-    print(f"=== Random runs ({len(ALGO_LIST)} algos x {len(STRATEGY_LIST)} strategies x {N_RUNS} runs) ===")
-    _t_random = time.perf_counter()
-    run_random()
-    _elapsed_random = time.perf_counter() - _t_random
-    print(f"Done. Results in {RANDOM_CSV}")
-    print(f"Random runs time: {_elapsed_random / 60:.1f} min ({_elapsed_random:.1f} s)")
+    if RUN_RANDOM:
+        print(f"=== Random runs ({len(ALGO_LIST)} algos x {len(STRATEGY_LIST)} strategies x {N_RUNS} runs) ===")
+        _t_random = time.perf_counter()
+        run_random()
+        _elapsed_random = time.perf_counter() - _t_random
+        print(f"Done. Results in {RANDOM_CSV}")
+        print(f"Random runs time: {_elapsed_random / 60:.1f} min ({_elapsed_random:.1f} s)")
 
-if RUN_FIXED:
-    print(f"\n=== Fixed-population runs ===")
-    _t_fixed = time.perf_counter()
-    run_fixed()
-    _elapsed_fixed = time.perf_counter() - _t_fixed
-    print(f"Done. Results in {FIXED_CSV}")
-    print(f"Fixed runs time: {_elapsed_fixed / 60:.1f} min ({_elapsed_fixed:.1f} s)")
+    if RUN_FIXED:
+        print(f"\n=== Fixed-population runs ===")
+        _t_fixed = time.perf_counter()
+        run_fixed()
+        _elapsed_fixed = time.perf_counter() - _t_fixed
+        print(f"Done. Results in {FIXED_CSV}")
+        print(f"Fixed runs time: {_elapsed_fixed / 60:.1f} min ({_elapsed_fixed:.1f} s)")
+
+
+if __name__ == "__main__":
+    _main()
