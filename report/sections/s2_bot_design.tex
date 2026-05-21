@@ -41,7 +41,7 @@ events in their difference using a two-point weighted kernel:
   for non-trading: if no crossover ever occurs, $C_t = 0$ for all $t$ and the
   bot holds cash throughout, returning $\mathrm{Fitness}(X) =
   \mathrm{USD}_{\text{initial}}$. This is a valid but uninformative fixed
-  point. The degenerate optimum was observed empirically --- MRFO converged
+  point. The bad/broken optimum was observed empirically --- MRFO converged
   to parameter regions with no crossover signal under certain configurations.
   A risk-adjusted metric such as the Sharpe ratio would penalise this
   behaviour but was not adopted here; the limitation is documented rather
@@ -52,14 +52,14 @@ events in their difference using a two-point weighted kernel:
   Five strategy configurations define the hypothesis space presented to each optimiser.
 
   \textit{Strategy 1 --- Double SMA crossover ($d=2$).} Both the short window
-  $x_0 \in [5,50]$ and the long window $x_1 \in [51,200]$ are optimised. The
-  non-overlapping constraint (short $<$ long) is guaranteed by construction
+  $x_0 \in [2,50]$ and the long window $x_1 \in [51,200]$ \cite{investopedia_moving_averages} 
+  are optimised. The non-overlapping constraint (short $<$ long) is guaranteed by construction
   through the parameter bounds, with no runtime enforcement required. The SMA
   assigns uniform weight to all prices within the window, making it
   insensitive to the ordering of recent versus older prices.
 
   \textit{Strategy 2 --- Double LMA crossover ($d=2$).} The parameter
-  structure is identical to Strategy 1 ($x_0 \in [5,50]$, $x_1 \in
+  structure is identical to Strategy 1 ($x_0 \in [2,50]$, $x_1 \in
   [51,200]$). The LMA assigns linearly decaying weights so that more recent
   prices contribute more than older ones, providing momentum sensitivity that
   the uniform SMA cannot capture. The optimiser thus faces the same
@@ -98,7 +98,7 @@ events in their difference using a two-point weighted kernel:
   optimisation pressure because $w_3$ is never directly searched; retaining
   all three as free variables ensures each weight receives equal search
   effort. The 14-dimensional space is the largest tested, and the curse of
-  dimensionality is a genuine concern when each optimiser is limited to 30 runs.
+  dimensionality is a genuine concern when each optimiser is limited to 50 runs.
 
   \subsection{Justified Deviations from Project Brief}
 
