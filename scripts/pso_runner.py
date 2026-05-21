@@ -3,7 +3,7 @@ from utilities.data_loader import load_data
 import runners.pso.ema as ema_runner
 
 from runners.aos.common import re_evaluate
-from runners.aos.plot import plot_equity_and_purchases
+from runners.pso.plot import plot_equity_and_purchases
 
 train_prices, train_dates, test_prices, test_dates = load_data("./data/BTC-Daily.csv")
 
