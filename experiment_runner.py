@@ -337,6 +337,12 @@ def run_fixed():
     if not os.path.exists(FIXED_POP_FILE):
         print("Generating fixed populations...")
         generate_fixed_populations()
+    else:
+        npz_check = np.load(FIXED_POP_FILE)
+        first_key = next(iter(npz_check))
+        if npz_check[first_key].shape[0] != GLOBAL_INITIAL_POPULATION_SIZE:
+            print("Saved numpy initial points did not match, regenerating new one")
+            generate_fixed_populations()
 
     npz   = np.load(FIXED_POP_FILE)
     tasks = []
