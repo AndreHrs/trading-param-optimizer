@@ -15,16 +15,34 @@ import tempfile
 
 import mlflow
 import mlflow.pyfunc
+from mlflow.models import ModelSignature
 from mlflow.tracking import MlflowClient
+from mlflow.types import DataType
+from mlflow.types.schema import Array, ColSpec, Schema
 
 from experiment_runner import ALGO_LIST, STRATEGY_LIST
-from trading_model import TradingStrategyModel
+from utilities.data_loader import load_data
 
 TRACKING_URI = "http://127.0.0.1:5000/"
 EXPERIMENT_NAME = "/trading-optimizer"
 
 mlflow.set_tracking_uri(TRACKING_URI)
 client = MlflowClient()
+
+_train_prices, _, _test_prices, _ = load_data("./data/BTC-Daily.csv")
+INPUT_EXAMPLE = {"price": _test_prices.tolist()}
+
+MODEL_SIGNATURE = ModelSignature(
+    inputs=Schema([
+        ColSpec(DataType.double, "price"),
+    ]),
+    outputs=Schema([
+        ColSpec(DataType.double, "final_cash"),
+        ColSpec(DataType.long, "buy_count"),
+        ColSpec(DataType.long, "sell_count"),
+        ColSpec(Array(DataType.double), "equity_curve"),
+    ]),
+)
 
 
 def get_experiment_id(name):
@@ -66,27 +84,28 @@ def register_model(run, algo, strategy, experiment_id):
             mlflow.log_params({"algo": algo, "strategy": strategy, "source_run_id": run.info.run_id})
             mlflow.log_metric("test_final_cash", run.data.metrics["test_final_cash"])
 
-            mlflow.pyfunc.log_model(
+            model_info = mlflow.pyfunc.log_model(
                 name=f"model-{model_name}",
-                python_model=TradingStrategyModel(),
+                python_model="trading_model.py",
                 artifacts={"best_params": artifact_path},
                 code_paths=["runners/", "optimizer/", "utilities/"],
+                signature=MODEL_SIGNATURE,
+                input_example=INPUT_EXAMPLE,
             )
 
-            model_uri = f"runs:/{reg_run.info.run_id}/model-{model_name}"
+            model_uri = model_info.model_uri
 
     # Register in the Model Registry
     mv = mlflow.register_model(model_uri=model_uri, name=model_name)
     print(f"  Registered {model_name} version {mv.version}")
 
-    # Promote to Production
-    client.transition_model_version_stage(
+    # Alias "production" replaces the deprecated stage promotion
+    client.set_registered_model_alias(
         name=model_name,
+        alias="production",
         version=mv.version,
-        stage="Production",
-        archive_existing_versions=True,
     )
-    print(f"  Promoted {model_name} v{mv.version} -> Production")
+    print(f"  Aliased {model_name} v{mv.version} -> @production")
     return mv
 
 

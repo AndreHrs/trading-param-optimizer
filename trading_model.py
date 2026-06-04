@@ -51,7 +51,7 @@ class TradingStrategyModel(mlflow.pyfunc.PythonModel):
         self.strategy = artifact["strategy"]
         self.best_params = artifact["best_params"]
 
-    def predict(self, context, model_input):
+    def predict(self, context, model_input: pd.DataFrame) -> pd.DataFrame:
         prices = np.array(model_input["price"], dtype=float)
 
         sig_fn = SIGNAL_FNS[self.strategy]
@@ -67,3 +67,6 @@ class TradingStrategyModel(mlflow.pyfunc.PythonModel):
             "short":        short.tolist(),
             "long":         long.tolist(),
         }])
+
+
+mlflow.models.set_model(TradingStrategyModel())
