@@ -3,3 +3,12 @@ report.aux
 report.fdb_latexmk
 report.log
 report.synctex.gz
+__pycache__/
+.idea
+build/
+yao/
+report/apssamp-words.sum
+report/papers
+report/report-words.sum
+report/reportNotes.bib
+.installed

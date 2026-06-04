@@ -1,1 +1,0 @@
-Places for the visualization script

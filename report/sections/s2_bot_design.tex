@@ -1,0 +1,145 @@
+\label{sec:bot_design}
+
+\subsection{Trading Signal and Fitness}
+
+Each strategy produces a short-window (low-period) and a long-window
+(high-period) smoothed price series. The trading signal detects crossover
+events in their difference using a two-point weighted kernel:
+
+%TC:ignore
+\begin{eqnarray}
+  \label{signal}
+  d_t = \mathrm{Series}_{\text{short},t} - \mathrm{Series}_{\text{long},t}
+  \quad\text{, }\quad
+  C_t = \tfrac{1}{2}\!\left(\operatorname{sign}(d_t) -
+  \operatorname{sign}(d_{t-1})\right)
+\end{eqnarray}
+\begin{equation}
+  S =
+  \left\{
+  \begin{array}{ll}
+    \text{buy}  & \text{if } C_t = -1 \;(\text{short crosses below long}) \\
+    \text{sell} & \text{if } C_t = +1 \;(\text{short crosses above long})
+  \end{array}
+  \right.
+\end{equation}
+%TC:endignore
+where $d_t$ is the difference of the two smoothed series at time $t$, $C_t
+\in \{-1, 0, +1\}$ is the crossover indicator, and $S$ is the resulting
+trade action. The signal is non-zero only at the moment of a crossover; it
+is zero on all other timesteps.
+
+The fitness function measures final USD holdings after simulating trades
+over the full training price series:
+\begin{equation} \label{eqn:fitness}
+  \mathrm{Fitness}(X) = \mathrm{USD}_{\text{final}}
+\end{equation}
+where $X$ is the candidate parameter vector, $\mathrm{USD}_{\text{final}}$
+is the cash held at the end of the simulation, and the starting balance is
+$\mathrm{USD}_{\text{initial}} = \$1000$. A transaction fee of 3\% is
+applied to each trade. The simulation is a single continuous pass over the
+training data with no mid-run resets.
+
+One acknowledged limitation is that the fitness function imposes no penalty
+for non-trading: if no crossover ever occurs, $C_t = 0$ for all $t$ and the
+bot holds cash throughout, returning $\mathrm{Fitness}(X) =
+\mathrm{USD}_{\text{initial}}$. This is a valid but uninformative fixed
+point. The bad/broken optimum was observed empirically --- MRFO converged
+to parameter regions with no crossover signal under certain configurations.
+A risk-adjusted metric such as the Sharpe ratio would penalise this
+behaviour but was not adopted here; the limitation is documented rather
+than silently corrected.
+
+\subsection{Strategy Configurations}
+
+Five strategy configurations define the hypothesis space presented to each optimiser.
+
+\textit{Strategy 1 --- Double SMA crossover ($d=2$).} Both the short window
+$x_0 \in [2,50]$ and the long window $x_1 \in [51,200]$ \cite{investopedia_moving_averages} 
+are optimised. The non-overlapping constraint (short $<$ long) is guaranteed by construction
+through the parameter bounds, with no runtime enforcement required. The SMA
+assigns uniform weight to all prices within the window, making it
+insensitive to the ordering of recent versus older prices.
+
+\textit{Strategy 2 --- Double LMA crossover ($d=2$).} The parameter
+structure is identical to Strategy 1 ($x_0 \in [2,50]$, $x_1 \in
+[51,200]$). The LMA assigns linearly decaying weights so that more recent
+prices contribute more than older ones, providing momentum sensitivity that
+the uniform SMA cannot capture. The optimiser thus faces the same
+two-dimensional search space as Strategy 1 but with a smoother series that
+responds differently to regime changes.
+
+\textit{Strategy 3 --- EMA with shared $\alpha$ ($d=3$).} A short span, a
+long span, and a single shared smoothing parameter $\alpha \in (0,1)$ are
+optimised jointly. Sharing one $\alpha$ value across both EMAs constrains 
+both series to decay at identical rates; the
+frequency contrast that drives the crossover signal therefore depends
+entirely on the span difference rather than on independent decay dynamics.
+This effectively collapses the degree of freedom to approximately 2.5
+effective dimensions in practice.
+
+\textit{Strategy 4 --- EMA with independent $\alpha$ ($d=4$).} Short span,
+long span, $\alpha_\mathrm{short}$, and $\alpha_\mathrm{long}$ are each
+optimised independently, along with additional EMA window parameters.
+Decoupling the smoothing parameters gives the short-term EMA its own
+reactivity and the long-term EMA its own stability, restoring the frequency
+contrast that shared $\alpha$ eliminates. The expanded search space ($d=4$
+versus $d=3$) carries a higher exploration cost but provides genuinely
+greater expressiveness: the two EMAs can now operate at qualitatively
+different timescales simultaneously. Empirically, this configuration
+produced the highest Kruskal-Wallis $H$-statistics across all strategy
+conditions, suggesting that the larger search space amplifies
+inter-algorithm performance differences rather than masking them.
+
+\textit{Strategy 5 --- Weighted MA combination ($d=14$).} SMA, LMA, and EMA
+signals are combined as a weighted sum with learned weights $w_1$, $w_2$,
+$w_3$. All three weights are treated as free optimisation dimensions and
+normalised at evaluation time (each $w_i$ divided by $w_1 + w_2 + w_3$),
+yielding a 14-dimensional parameter vector that includes window parameters
+for each MA type plus EMA spans and smoothing factors. Deriving $w_3 = 1 -
+w_1 - w_2$, as the project brief implies, would create asymmetric
+optimisation pressure because $w_3$ is never directly searched; retaining
+all three as free variables ensures each weight receives equal search
+effort. The 14-dimensional space is the largest tested, and the curse of
+dimensionality is a genuine concern when each optimiser is limited to 50 runs.
+
+\subsection{Justified Deviations from Project Brief}
+
+%TC:ignore
+\begin{table}[H]
+  \caption{\label{tab:deviations}%
+    Summary of implementation decisions that deviate from the project brief,
+  with justification for each.}
+  \begin{ruledtabular}
+    \begin{tabular}{llll}
+      Deviation & \makecell[l]{Brief\\approach} &
+      \makecell[l]{Our\\implementation} & Justification \\
+      \hline
+      EMA normalisation
+      & Optional
+      & \makecell[l]{Enabled by\\default}
+      & \makecell[l]{Unnormalised kernels produce span-dependent\\amplitude
+        distortion, making fitness values\\non-comparable across parameter
+      configurations} \\[2ex]
+      \makecell[l]{$d=14$ weight\\derivation}
+      & \makecell[l]{$w_3$ derived as\\$1-w_1-w_2$}
+      & \makecell[l]{All three weights free;\\normalised at eval time}
+      & \makecell[l]{Derived $w_3$ receives no direct search
+      pressure,\\creating asymmetric optimisation bias} \\[2ex]
+      \makecell[l]{$n_\text{shells}$\\assignment}
+      & \makecell[l]{Fixed\\shell count}
+      & \makecell[l]{$\min(n_\text{shells},\,|\text{remaining}|)$}
+      & \makecell[l]{Prevents degenerate empty shell states
+        in\\high-dimensional runs where population may\\be smaller than the
+      configured shell count} \\[2ex]
+      \makecell[l]{EMA $\alpha$\\across spans}
+      & \makecell[l]{Shared $\alpha$\\(Strategy~3)}
+      & \makecell[l]{Independent
+      $\alpha_\text{short}$,\\$\alpha_\text{long}$ (Strategy~4)}
+      & \makecell[l]{Shared $\alpha$ constrains both series to
+        identical\\decay rates, eliminating the frequency contrast\\that
+      makes the crossover signal informative} \\
+    \end{tabular}
+  \end{ruledtabular}
+\end{table}
+%TC:endignore

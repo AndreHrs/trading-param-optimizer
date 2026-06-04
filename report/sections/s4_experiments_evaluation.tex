@@ -1,0 +1,29 @@
+\label{sec:experiments}
+
+\subsection{Dataset}
+
+Daily BTC/USD OHLCV data (Kaggle, 2014-2022) was used, with training on pre-2020 
+data and testing on 2020-2022. The post-2020 period encompasses three qualitatively 
+distinct regimes — the COVID-19 crash, the 2021 bull run, and the 2022 bear market 
+— constituting an intentional out-of-distribution stress test rather than a 
+random holdout.
+
+\subsection{Experimental Design}
+
+The full factorial design comprised 6~algorithms $\times$ 5~strategies
+$\times$ 2~initialisation modes $\times$ 50~runs = 3000~total trials. 
+Fixed initialisation seeds all runs from a saved initialized once position; 
+random initialisation draws each run uniformly from the search space. 
+Strong dependence on initialisation mode would indicate algorithmic fragility. 
+A run count of 50 balances statistical power against computational cost.
+
+\subsection{Statistical Analysis}
+
+Kruskal-Wallis was used in preference to ANOVA because optimiser output systematically 
+violates normality: runs can converge to the no-trade fixed point (\$1000), 
+produce occasional high-value jackpot outliers, or spread heavily in between — 
+all genuine behavioural modes, not noise. Kruskal-Wallis operates on ranks and is 
+robust to these distributional shapes. The test was applied per strategy $\times$ 
+initialisation combination with algorithm as the factor, isolating algorithmic 
+effects from strategy-level confounds. 
+Pairwise post-hoc comparisons used Dunn's test with Bonferroni correction ($\alpha = 0.05$).

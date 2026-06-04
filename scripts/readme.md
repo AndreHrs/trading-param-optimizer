@@ -1,0 +1,1 @@
+standalone tester for individual results

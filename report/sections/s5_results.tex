@@ -1,0 +1,332 @@
+\label{sec:results}
+
+\subsection{Training Results}
+
+%TC:ignore
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.5\textwidth]{images/dunn_pairwise_train.png}
+  \caption{\label{fig:dunn_train}%
+    Dunn's post-hoc pairwise $p$-values (Bonferroni-corrected) for all strategy
+    $\times$ initialisation combinations --- training fitness. Red indicates
+    significant difference ($p < 0.05$); green indicates no significant difference.}
+\end{figure}
+%TC:endignore
+
+%TC:ignore
+\begin{table}[h]
+\centering
+\caption{\label{tab:kruskal_wallis}%
+Kruskal--Wallis $H$-test results comparing optimisation algorithms for each
+strategy and initialisation mode, on \emph{training} and \emph{test} fitness.
+On training fitness, algorithm choice is universally significant
+($p < 10^{-34}$). On test fitness the effect is strategy-dependent:
+\texttt{ema\_shared} loses all significance ($p > 0.90$), while
+\texttt{ema\_independent} retains the strongest effect ($H > 179$).}
+\begin{tabular}{llcccc}
+\toprule
+& & \multicolumn{2}{c}{\textbf{Training}} & \multicolumn{2}{c}{\textbf{Test}} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+\textbf{Strategy} & \textbf{Start} & \textbf{$H$} & \textbf{$p$} & \textbf{$H$} & \textbf{$p$} \\
+\midrule
+sma              & fixed  & 200.63 & $2.1\times10^{-41}$ & 46.59  & $6.9\times10^{-9}$  \\
+sma              & random & 198.09 & $7.3\times10^{-41}$ & 85.68  & $5.4\times10^{-17}$ \\
+lma              & fixed  & 176.56 & $2.9\times10^{-36}$ & 73.95  & $1.5\times10^{-14}$ \\
+lma              & random & 170.28 & $6.3\times10^{-35}$ & 58.34  & $2.7\times10^{-11}$ \\
+ema\_shared      & fixed  & 206.76 & $1.0\times10^{-42}$ & 0.60   & $9.9\times10^{-1}$  \\
+ema\_shared      & random & 190.41 & $3.2\times10^{-39}$ & 1.51   & $9.1\times10^{-1}$  \\
+ema\_independent & fixed  & 223.17 & $3.1\times10^{-46}$ & 184.26 & $6.6\times10^{-38}$ \\
+ema\_independent & random & 244.91 & $6.8\times10^{-51}$ & 179.13 & $8.2\times10^{-37}$ \\
+weighted         & fixed  & 213.19 & $4.3\times10^{-44}$ & 78.91  & $1.4\times10^{-15}$ \\
+weighted         & random & 224.80 & $1.4\times10^{-46}$ & 78.54  & $1.7\times10^{-15}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+%TC:endignore
+
+The Kruskal--Wallis test was significant across all ten strategy $\times$
+initialisation combinations on training fitness ($p < 10^{-34}$ in every
+case; Table~\ref{tab:kruskal_wallis}). Three patterns emerge from Dunn's
+pairwise post-hoc comparisons (Figure~\ref{fig:dunn_train}). First, GPS is
+significantly separated from all population-based methods in the large
+majority of conditions. The clearest exception is \texttt{ema\_independent},
+where GPS and MRFO are not significantly different ($p = 0.16$ fixed,
+$p = 1.00$ random); MRFO collapses to the no-trade fixed point in every
+fixed-initialisation run ($\textrm{CV} = 0$), so the non-significance
+reflects two algorithms failing to the same floor.
+
+Second, the PSO--SOS--AOS cluster is strategy-dependent: largely
+indistinguishable on \texttt{weighted} and $d=2$ strategies, but breaking
+apart on \texttt{ema\_independent}, where AOS separates significantly from
+PSO ($p = 1.7 \times 10^{-3}$ fixed, $p = 2.5 \times 10^{-6}$ random) and
+from SOS.
+
+Third, SOS exhibits zero within-cell variance on $d=2$ strategies
+($\textrm{CV} = 0.000$; Table~\ref{tab:perf_train}), consistent with its
+three-phase update collapsing diversity rapidly. Its mean wall-clock runtime
+($14{,}730$\,ms) is roughly four times that of PSO ($3{,}706$\,ms).
+
+%TC:ignore
+\begin{table}[ht]
+\centering
+\caption{\label{tab:perf_train}%
+Summary of \emph{training} fitness by algorithm and strategy, pooled across
+both initialisation modes (100 runs per cell). Note the very high training
+fitness reached on \texttt{ema\_shared} (medians up to $\$133{,}000$), which
+Section~\ref{sec:results} shows does not transfer to test.}
+\small
+\begin{tabular}{llrrrrr}
+\toprule
+\textbf{Algo} & \textbf{Strategy} & \textbf{Mean} & \textbf{Std} & \textbf{CV} & \textbf{Median} & \textbf{Max} \\
+\midrule
+abo  & ema\_independent & $10{,}750.12$ & $1{,}802.05$ & $0.168$ & $10{,}347.23$ & $15{,}352.63$ \\
+aos  & ema\_independent & $19{,}631.96$ & $5{,}008.31$ & $0.255$ & $21{,}904.21$ & $21{,}904.21$ \\
+gps  & ema\_independent & $5{,}179.20$  & $3{,}858.59$ & $0.745$ & $4{,}543.98$  & $12{,}939.69$ \\
+mrfo & ema\_independent & $1{,}000.00$  & $0.00$       & $0.000$ & $1{,}000.00$  & $1{,}000.00$  \\
+pso  & ema\_independent & $12{,}092.59$ & $1{,}255.72$ & $0.104$ & $11{,}463.70$ & $15{,}303.77$ \\
+sos  & ema\_independent & $13{,}273.95$ & $799.34$     & $0.060$ & $13{,}197.07$ & $15{,}607.47$ \\
+\midrule
+abo  & ema\_shared      & $93{,}661.07$  & $24{,}627.52$ & $0.263$ & $90{,}428.45$  & $157{,}746.47$ \\
+aos  & ema\_shared      & $67{,}128.07$  & $26{,}684.54$ & $0.398$ & $60{,}697.82$  & $229{,}103.39$ \\
+gps  & ema\_shared      & $11{,}989.89$  & $14{,}016.59$ & $1.169$ & $7{,}882.87$   & $59{,}090.09$  \\
+mrfo & ema\_shared      & $86{,}615.44$  & $31{,}961.19$ & $0.369$ & $78{,}405.64$  & $237{,}614.46$ \\
+pso  & ema\_shared      & $103{,}646.40$ & $22{,}819.48$ & $0.220$ & $102{,}724.96$ & $193{,}483.44$ \\
+sos  & ema\_shared      & $132{,}840.58$ & $30{,}893.95$ & $0.233$ & $128{,}243.17$ & $215{,}646.97$ \\
+\midrule
+abo  & lma             & $802.79$ & $16.63$  & $0.021$ & $800.11$ & $818.93$ \\
+aos  & lma             & $805.44$ & $15.38$  & $0.019$ & $809.92$ & $818.93$ \\
+gps  & lma             & $463.95$ & $120.20$ & $0.259$ & $461.38$ & $818.93$ \\
+mrfo & lma             & $810.79$ & $11.45$  & $0.014$ & $818.93$ & $818.93$ \\
+pso  & lma             & $798.10$ & $16.98$  & $0.021$ & $800.11$ & $818.93$ \\
+sos  & lma             & $818.93$ & $0.00$   & $0.000$ & $818.93$ & $818.93$ \\
+\midrule
+abo  & sma             & $930.41$ & $13.21$  & $0.014$ & $932.50$ & $932.50$ \\
+aos  & sma             & $931.76$ & $0.66$   & $0.001$ & $931.18$ & $932.50$ \\
+gps  & sma             & $551.42$ & $118.34$ & $0.215$ & $542.81$ & $917.97$ \\
+mrfo & sma             & $932.50$ & $0.00$   & $0.000$ & $932.50$ & $932.50$ \\
+pso  & sma             & $909.75$ & $48.31$  & $0.053$ & $932.50$ & $932.50$ \\
+sos  & sma             & $932.50$ & $0.00$   & $0.000$ & $932.50$ & $932.50$ \\
+\midrule
+abo  & weighted        & $11{,}339.38$ & $1{,}200.41$ & $0.106$ & $11{,}385.64$ & $14{,}205.09$ \\
+aos  & weighted        & $10{,}697.16$ & $2{,}147.99$ & $0.201$ & $10{,}355.90$ & $29{,}952.87$ \\
+gps  & weighted        & $5{,}124.90$  & $3{,}544.28$ & $0.692$ & $5{,}295.31$  & $12{,}601.00$ \\
+mrfo & weighted        & $14{,}049.10$ & $9{,}313.82$ & $0.663$ & $11{,}952.69$ & $65{,}347.85$ \\
+pso  & weighted        & $12{,}744.28$ & $1{,}112.69$ & $0.087$ & $12{,}602.90$ & $17{,}561.96$ \\
+sos  & weighted        & $13{,}215.13$ & $549.20$     & $0.042$ & $13{,}242.64$ & $14{,}531.01$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+%TC:endignore
+
+\subsection{Test Results --- Performance Against the Passive Baseline}
+
+%TC:ignore
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.95\textwidth]{images/median_test_cash_fixed.png}
+  \\
+  \includegraphics[width=0.95\textwidth]{images/median_test_cash_random.png}
+  \caption{\label{fig:bh_median}%
+    Median test cash by algorithm and strategy, normalised to the
+    buy-and-hold baseline ($\$5{,}661.00$ from $\$1{,}000$ initial under
+    matched $3\%$ entry and exit fees), for fixed (top) and random (bottom)
+    initialisation. No algorithm $\times$ strategy median exceeds the
+    baseline ($1.00\times$ line) under any condition.}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.95\textwidth]{images/max_test_cash_fixed.png}
+  \\
+  \includegraphics[width=0.95\textwidth]{images/max_test_cash_random.png}
+  \caption{\label{fig:bh_max}%
+    Maximum test cash by algorithm and strategy, normalised to the
+    buy-and-hold baseline, for fixed (top) and random (bottom)
+    initialisation. Bars above $1.00\times$ indicate at least one run in 50
+    exceeded passive holding; concentration of such bars in
+    \texttt{ema\_shared} reflects its long-tailed jackpot distribution
+    rather than reliable optimisation.}
+\end{figure}
+
+\begin{table}[h]
+\centering
+\caption{\label{tab:beats_bh}%
+Runs exceeding the passive buy-and-hold baseline under strict $>$ comparison.
+The baseline is $\$5{,}661.00$; counts are out of 50 runs per cell;
+3{,}000 trials in total.}
+\begin{tabular}{lrrrrrrrrrr}
+\toprule
+& \multicolumn{2}{c}{\textbf{ema\_ind}} & \multicolumn{2}{c}{\textbf{ema\_shared}} & \multicolumn{2}{c}{\textbf{lma}} & \multicolumn{2}{c}{\textbf{sma}} & \multicolumn{2}{c}{\textbf{weighted}} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}
+algo & fix & rnd & fix & rnd & fix & rnd & fix & rnd & fix & rnd \\
+\midrule
+abo  & 0 & 0 & 1 & 3 & 0 & 0 & 0 & 0 & 3 & 6 \\
+aos  & 0 & 0 & 1 & 3 & 0 & 0 & 0 & 0 & 2 & 2 \\
+gps  & 2 & 0 & 3 & 3 & 0 & 0 & 0 & 0 & 0 & 0 \\
+mrfo & 0 & 0 & 3 & 3 & 0 & 0 & 0 & 0 & 0 & 3 \\
+pso  & 0 & 0 & 2 & 6 & 0 & 0 & 0 & 0 & 2 & 1 \\
+sos  & 0 & 0 & 4 & 2 & 0 & 0 & 0 & 0 & 4 & 3 \\
+\midrule
+\textbf{total} & \textbf{2} & \textbf{0} & \textbf{14} & \textbf{20} & \textbf{0} & \textbf{0} & \textbf{0} & \textbf{0} & \textbf{11} & \textbf{15} \\
+\bottomrule
+\end{tabular}
+\end{table}
+%TC:endignore
+
+A passive buy-and-hold strategy over the 2020--2022 test period produced
+$\$5{,}661.00$ from a $\$1{,}000$ starting balance. Of the 3{,}000 optimised
+bots, only 62 ($2.07\%$) strictly exceeded this baseline; no algorithm
+$\times$ strategy median exceeded it under any condition
+(Figure~\ref{fig:bh_median}). Win rates were heavily stratified by strategy
+(Table~\ref{tab:beats_bh}): \texttt{sma} and \texttt{lma} yielded zero wins
+across 1{,}200 combined runs; \texttt{ema\_independent} produced only
+$2/600$; \texttt{weighted} produced $26/600$; and \texttt{ema\_shared}
+produced $34/600$.
+
+%TC:ignore
+\begin{table}[ht]
+\centering
+\caption{\label{tab:perf_test}%
+Summary of \emph{test} fitness by algorithm and strategy, pooled across both
+initialisation modes (100 runs per cell). Compare against
+Table~\ref{tab:perf_train}: training medians above $\$100{,}000$ on
+\texttt{ema\_shared} collapse to a test median of $\$1{,}000$ for every
+algorithm.}
+\small
+\begin{tabular}{llrrrrr}
+\toprule
+\textbf{Algo} & \textbf{Strategy} & \textbf{Mean} & \textbf{Std} & \textbf{CV} & \textbf{Median} & \textbf{Max} \\
+\midrule
+abo  & ema\_independent & $1{,}455.93$ & $800.27$     & $0.550$ & $1{,}239.42$ & $4{,}998.46$ \\
+aos  & ema\_independent & $1{,}079.86$ & $496.95$     & $0.460$ & $1{,}104.87$ & $4{,}249.85$ \\
+gps  & ema\_independent & $2{,}633.91$ & $1{,}703.55$ & $0.647$ & $1{,}982.11$ & $5{,}850.78$ \\
+mrfo & ema\_independent & $1{,}000.00$ & $0.00$       & $0.000$ & $1{,}000.00$ & $1{,}000.00$ \\
+pso  & ema\_independent & $3{,}288.24$ & $1{,}485.39$ & $0.452$ & $4{,}435.27$ & $4{,}565.80$ \\
+sos  & ema\_independent & $3{,}806.42$ & $1{,}374.95$ & $0.361$ & $4{,}565.80$ & $5{,}159.96$ \\
+\midrule
+abo  & ema\_shared      & $1{,}903.99$ & $1{,}636.50$ & $0.860$ & $1{,}000.00$ & $8{,}795.49$ \\
+aos  & ema\_shared      & $1{,}914.91$ & $1{,}653.88$ & $0.864$ & $1{,}000.00$ & $7{,}284.67$ \\
+gps  & ema\_shared      & $1{,}970.13$ & $2{,}187.39$ & $1.110$ & $1{,}000.00$ & $9{,}614.94$ \\
+mrfo & ema\_shared      & $1{,}868.67$ & $1{,}771.49$ & $0.948$ & $1{,}000.00$ & $7{,}660.07$ \\
+pso  & ema\_shared      & $2{,}265.04$ & $1{,}993.23$ & $0.880$ & $1{,}000.00$ & $8{,}392.40$ \\
+sos  & ema\_shared      & $2{,}190.03$ & $2{,}061.31$ & $0.941$ & $1{,}000.00$ & $8{,}663.88$ \\
+\midrule
+abo  & lma             & $718.72$ & $186.57$ & $0.260$ & $671.51$ & $907.98$   \\
+aos  & lma             & $799.00$ & $173.74$ & $0.217$ & $907.98$ & $977.77$   \\
+gps  & lma             & $906.20$ & $217.94$ & $0.241$ & $931.86$ & $1{,}399.39$ \\
+mrfo & lma             & $759.18$ & $197.79$ & $0.261$ & $907.98$ & $907.98$   \\
+pso  & lma             & $659.46$ & $174.85$ & $0.265$ & $671.51$ & $907.98$   \\
+sos  & lma             & $907.98$ & $0.00$   & $0.000$ & $907.98$ & $907.98$   \\
+\midrule
+abo  & sma             & $1{,}170.00$ & $22.46$  & $0.019$ & $1{,}180.28$ & $1{,}180.28$ \\
+aos  & sma             & $1{,}165.29$ & $13.35$  & $0.011$ & $1{,}153.51$ & $1{,}180.28$ \\
+gps  & sma             & $1{,}080.49$ & $248.38$ & $0.230$ & $1{,}055.30$ & $1{,}857.14$ \\
+mrfo & sma             & $1{,}180.28$ & $0.00$   & $0.000$ & $1{,}180.28$ & $1{,}180.28$ \\
+pso  & sma             & $1{,}112.79$ & $155.32$ & $0.140$ & $1{,}180.28$ & $1{,}180.28$ \\
+sos  & sma             & $1{,}180.28$ & $0.00$   & $0.000$ & $1{,}180.28$ & $1{,}180.28$ \\
+\midrule
+abo  & weighted        & $4{,}453.79$ & $1{,}124.67$ & $0.253$ & $4{,}620.62$ & $6{,}498.67$ \\
+aos  & weighted        & $4{,}606.32$ & $831.97$     & $0.181$ & $4{,}745.43$ & $5{,}920.21$ \\
+gps  & weighted        & $2{,}302.15$ & $1{,}651.62$ & $0.717$ & $1{,}891.33$ & $5{,}610.75$ \\
+mrfo & weighted        & $4{,}570.30$ & $977.47$     & $0.214$ & $4{,}755.59$ & $7{,}604.38$ \\
+pso  & weighted        & $4{,}510.11$ & $993.36$     & $0.220$ & $4{,}766.00$ & $5{,}965.44$ \\
+sos  & weighted        & $4{,}840.99$ & $516.32$     & $0.107$ & $4{,}749.80$ & $5{,}889.75$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+%TC:endignore
+
+\subsection{Test Results --- Statistical Differentiation}
+
+%TC:ignore
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.5\textwidth]{images/dunn_pairwise_test.png}
+  \caption{\label{fig:dunn_test}%
+    Dunn's post-hoc pairwise $p$-values (Bonferroni-corrected) for all strategy
+    $\times$ initialisation combinations --- test fitness.}
+\end{figure}
+%TC:endignore
+
+On test data, the strong training differences largely collapse
+(Figure~\ref{fig:dunn_test}; Table~\ref{tab:kruskal_wallis}). The most
+extreme case is \texttt{ema\_shared}: every pairwise $p$-value equals $1.000$
+and Kruskal--Wallis is non-significant under both initialisation modes ---
+all six algorithms are statistically indistinguishable on the strategy that
+produced the most baseline-beating runs.
+
+The one strategy retaining strong test-side differentiation is
+\texttt{ema\_independent} ($H = 184.26$ fixed, $179.13$ random). PSO and SOS
+retain high test medians (pooled medians $\$4{,}435$ and $\$4{,}566$), whereas
+AOS collapses to $\$1{,}105$ despite leading on training fitness
+(Table~\ref{tab:perf_test}). A caution applies: on strategies where roughly
+$32\%$ of runs sit at broken fixed points, statistical significance can
+reflect how often an algorithm collapses rather than genuine optimisation
+quality.
+
+\subsection{Train--Test Rank Transfer}
+
+%TC:ignore
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.7\textwidth]{images/train_test_spearman.png}
+  \caption{\label{fig:spearman}%
+    Spearman rank correlation between training and test fitness per strategy
+    (both initialisation modes pooled, $n=600$ per strategy).
+    $\rho = 0$ corresponds to no rank transfer.}
+\end{figure}
+%TC:endignore
+
+Spearman rank correlation (Figure~\ref{fig:spearman}) reveals that
+\texttt{sma} has the strongest train--test transfer ($\rho = 0.66$), while
+\texttt{ema\_shared} shows none ($\rho = 0.05$, $p = 0.20$, n.s.). The
+relationship is not monotonic in dimensionality: \texttt{ema\_shared}
+($d=3$) transfers worse than the $d=14$ \texttt{weighted} space
+($\rho = 0.34$), and decoupling the two EMAs' smoothing rates moves $\rho$
+from $0.05$ to $0.38$ with no other change. The nature of the
+parameterisation matters more than its size.
+
+Notably, win rate is anti-correlated with transfer reliability: the two
+strategies with the most baseline-beating runs (\texttt{ema\_shared},
+\texttt{weighted}) have the weakest transfer, while \texttt{sma} --- the
+strongest transfer --- produced zero wins. Table~\ref{tab:algo_run_details}
+makes this concrete: the single highest test result ($\$9{,}615$, GPS
+\texttt{ema\_shared}) came from a training fitness of only $\$16{,}290$ ---
+an order of magnitude below runs that tested far lower.
+
+%TC:ignore
+\begin{table}[ht]
+\centering
+\caption{\label{tab:algo_run_details}%
+The 20 highest test-fitness runs across all 3{,}000 trials. Training fitness
+is shown alongside for comparison: the ordering by test fitness bears little
+relation to the ordering by training fitness.}
+\small
+\begin{tabular}{llcrr}
+\toprule
+\textbf{Algo} & \textbf{Strategy} & \textbf{Start} & \textbf{Train Cash} & \textbf{Test Cash} \\
+\midrule
+gps  & ema\_shared & fixed  & $16{,}290.48$  & $9{,}614.94$ \\
+gps  & ema\_shared & fixed  & $16{,}290.48$  & $9{,}614.94$ \\
+gps  & ema\_shared & random & $16{,}290.48$  & $9{,}614.94$ \\
+gps  & ema\_shared & random & $16{,}290.48$  & $9{,}614.94$ \\
+abo  & ema\_shared & random & $54{,}301.41$  & $8{,}795.49$ \\
+sos  & ema\_shared & fixed  & $166{,}428.24$ & $8{,}663.88$ \\
+sos  & ema\_shared & fixed  & $128{,}331.33$ & $8{,}392.40$ \\
+sos  & ema\_shared & fixed  & $114{,}909.60$ & $8{,}392.40$ \\
+gps  & ema\_shared & fixed  & $47{,}972.89$  & $8{,}392.40$ \\
+pso  & ema\_shared & random & $138{,}076.13$ & $8{,}392.40$ \\
+sos  & ema\_shared & random & $87{,}164.40$  & $8{,}392.40$ \\
+gps  & ema\_shared & random & $30{,}519.05$  & $8{,}392.40$ \\
+pso  & ema\_shared & fixed  & $80{,}647.43$  & $8{,}267.02$ \\
+mrfo & ema\_shared & random & $125{,}386.17$ & $7{,}660.07$ \\
+mrfo & weighted    & random & $48{,}030.39$  & $7{,}604.38$ \\
+mrfo & ema\_shared & fixed  & $105{,}631.68$ & $7{,}586.17$ \\
+abo  & ema\_shared & random & $71{,}590.32$  & $7{,}499.73$ \\
+aos  & ema\_shared & random & $41{,}659.30$  & $7{,}284.67$ \\
+pso  & ema\_shared & random & $115{,}538.41$ & $7{,}226.59$ \\
+pso  & ema\_shared & fixed  & $107{,}480.63$ & $7{,}185.07$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+%TC:endignore
