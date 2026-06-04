@@ -16,13 +16,15 @@ from utilities.data_loader import load_data
 from utilities.csv_exporter import COLUMNS
 from utilities.pin_p_cores import get_worker_count, worker_init
 
+import mlflow
+
 # ===============
 # CONFIGURATIONS:
 # ===============
 RUN_RANDOM = True
 RUN_FIXED = True
 
-N_RUNS = 50
+N_RUNS = 5
 GLOBAL_INITIAL_POPULATION_SIZE = 100
 RESULTS_DIR = "results"
 RANDOM_CSV = os.path.join(RESULTS_DIR, "random_runs.csv")
@@ -271,12 +273,32 @@ test_prices = None
 
 
 def _run_task(args):
+    mlflow.set_tracking_uri("http://127.0.0.1:5000/")
+    mlflow.set_experiment("/trading-optimizer")
+
     algo, strategy, run_id, mode, initial_population, initial_position = args
     opt = run_single(algo, strategy, train_prices,
                      initial_population=initial_population,
                      initial_position=initial_position,
                      seed=run_id)
-    return collect_row(opt, algo, strategy, run_id, mode, train_prices, test_prices, HYPERPARAMS[algo])
+    row = collect_row(opt, algo, strategy, run_id, mode, train_prices, test_prices, HYPERPARAMS[algo])
+
+    # MLflow logging
+    with mlflow.start_run():
+        mlflow.log_params({
+            "algo": algo,
+            "strategy": strategy,
+            "run_id": run_id,
+            "start_mode": mode,
+            **HYPERPARAMS[algo]   # pop_size, max_iter, etc.
+        })
+        mlflow.log_metrics({
+            "final_cash": row["final_cash"],
+            "test_final_cash": row["test_final_cash"],
+            "best_fitness": row["best_fitness"],
+            "runtime_ms": row["runtime_ms"],
+        })
+    return row
 
 def _run_parallel(tasks):
     n_workers = get_worker_count()
