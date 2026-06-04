@@ -1,22 +1,25 @@
-# CITS4404 Team 6 — Bitcoin Trading Bot Optimisation
+# Trading Parameter Optimizer
 
-## Table of Contents
+A personal continuation of [CITS4404_2026_Team6](https://github.com/AndreHrs/CITS4404_2026_Team6). GitHub doesn't allow forking your own repository, so this is a manual copy with ongoing development layered on top.
 
-- [Project Overview](#project-overview)
-- [Directory Structure](#directory-structure)
-- [Reproducing Results](#reproducing-results)
-  - [1. Automated setup and run (recommended)](#1-automated-setup-and-run-recommended)
-  - [2. Manual setup (if not using `run.sh`)](#2-manual-setup-if-not-using-runsh)
-  - [3. Run the experiment runner](#3-run-the-experiment-runner)
-  - [4. Generate figures and tables](#4-generate-figures-and-tables)
-- [AI Usage Disclaimer](#ai-usage-disclaimer)
-- [Development Setup](#development-setup)
+The project optimises parameters for Bitcoin trading strategies using nature-inspired algorithms, with experiment tracking via MLflow.
 
 ---
 
-## Project Overview
+## What it does
 
-This is a CITS4404 (Artificial Intelligence and Adaptive Systems) university project that builds and evaluates Bitcoin trading bots using nature-inspired optimisation algorithms. Six optimisers are compared: Atomic Orbital Search (AOS), Particle Swarm Optimisation (PSO), Manta Ray Foraging Optimisation (MRFO), Symbiotic Organisms Search (SOS), and African Buffalo Optimisation (ABO), with Generalised Pattern Search (GPS) serving as a classical local-search baseline. Each algorithm optimises the parameters of one of five moving-average crossover strategies — ranging from a simple 2-dimensional double-SMA crossover to a 14-dimensional weighted MA combination — evaluated on historical BTC/USD price data. Performance is measured by final USD holdings after simulating trades with a 3% transaction fee on a fixed starting balance of $1000.
+Six optimisers are benchmarked against five moving-average crossover strategies on historical BTC/USD data:
+
+| Optimisers | Strategies |
+|---|---|
+| Particle Swarm Optimisation (PSO) | Double SMA crossover |
+| Atomic Orbital Search (AOS) | EMA/SMA crossover |
+| Manta Ray Foraging Optimisation (MRFO) | Triple MA crossover |
+| Symbiotic Organisms Search (SOS) | MACD-based |
+| African Buffalo Optimisation (ABO) | Weighted MA combination |
+| Generalised Pattern Search (GPS) — baseline | |
+
+Performance is measured by final USD value after simulating trades with a 3% fee on a $1000 starting balance.
 
 ---
 
@@ -24,57 +27,38 @@ This is a CITS4404 (Artificial Intelligence and Adaptive Systems) university pro
 
 ```
 .
-├── experiment_runner.py   Main entry point — runs all algorithm/strategy combinations
-├── notebook.ipynb         Post-processing notebook: loads CSVs, generates tables and figures
-├── notebook.py            Plain-Python equivalent of the notebook originally for jupytext use
-├── run.sh                 Convenience script: installs dependencies then runs the experiment runner
-├── install.sh             Installer: sets up conda or venv environment from requirements.txt
-├── requirements.txt       Python package dependencies
-├── manual_calculation.ods Spreadsheet used for manual verification of results
+├── experiment_runner.py      Runs all algorithm/strategy combinations
+├── register_best_models.py   Finds the best run per (algo, strategy) and registers it in the MLflow Model Registry
+├── trading_model.py          MLflow pyfunc wrapper for loading and running a registered strategy
+├── load_and_test.py          Loads a registered model from the registry and runs it on new data
+├── notebook.ipynb            Post-processing: loads results, generates tables and figures
+├── run.sh                    Convenience script: installs deps then runs the experiment runner
+├── install.sh                Sets up conda or venv from requirements.txt
+├── requirements.txt          Python dependencies
 │
-├── optimizer/             Algorithm implementations (AOS, PSO, MRFO, SOS, ABO, GPS, shared evaluator)
-├── runners/               Per-algorithm runner modules wiring optimisers to strategies
-├── utilities/             Shared utilities: data loading, CSV export, CPU-core pinning, filters
-├── scripts/               Standalone per-algorithm runner scripts and manual test utilities
+├── optimizer/                Algorithm implementations and shared evaluator
+├── runners/                  Per-algorithm runner modules
+├── utilities/                Data loading, CSV export, CPU-core pinning, filters
+├── scripts/                  Standalone per-algorithm scripts and manual test utilities
 │
-├── data/                  Historical BTC/USD price data (daily and hourly CSVs)
-├── results/               Output CSVs and summary tables produced by the experiment runner
-├── report/                LaTeX source, bibliography, section files, figures, and compiled PDF
-├── notes/                 Developer notes
-└── not_used/              Archived code not included in the final submission
+├── data/                     Historical BTC/USD price data (daily and hourly CSVs)
+├── results/                  Output CSVs from the experiment runner
+├── mlartifacts/              MLflow artifact store
+├── mlflow.db                 MLflow tracking database (SQLite)
+└── report/                   LaTeX source and compiled PDF from the original project
 ```
 
 ---
 
-## Reproducing Results
+## Setup
 
-### 1. Automated setup and run (recommended)
-
-> **Note:** `run.sh` and `install.sh` have only been tested on Linux (Arch). Usage on macOS or Windows (using WSL) is untested, proceed with caution.
-
-A convenience script handles environment setup and launches the runner in one step:
-
-```bash
-./run.sh
-```
-
-`run.sh` calls `install.sh` on first use (creating a `conda` or `.venv` environment and installing `requirements.txt`), then activates the environment and runs `experiment_runner.py`. Subsequent calls skip the install step unless `.installed` is missing.
-
-You can pass arguments through to the runner:
-
-```bash
-./run.sh --some-flag value
-```
-
-### 2. Manual setup (if not using `run.sh`)
-
-Python 3.10 or later is required.
+Python 3.12+ required.
 
 **With conda:**
 
 ```bash
-conda create -n cits4404 python=3.12 -y
-conda activate cits4404
+conda create -n trading python=3.12 -y
+conda activate trading
 pip install -r requirements.txt
 ```
 
@@ -82,154 +66,56 @@ pip install -r requirements.txt
 
 ```bash
 python3 -m venv .venv
-source .venv/bin/activate      # On Windows: .venv\Scripts\activate
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. Run the experiment runner
+---
 
-The main entry point is `experiment_runner.py`. Before running, open the file and set the configuration flags at the top of the script (e.g. number of runs, population size, strategies to include).
+## Running experiments
 
-Then run:
+### 1. Start the MLflow server
+
+```bash
+mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root ./mlartifacts --host 127.0.0.1 --port 5000
+```
+
+The tracking UI is then available at [http://127.0.0.1:5000](http://127.0.0.1:5000).
+
+### 2. Run all combinations
 
 ```bash
 python experiment_runner.py
 ```
 
-This produces two output files in `results/`:
+Configuration flags (number of runs, population size, which strategies to include) are set at the top of `experiment_runner.py`. Each run is logged to MLflow automatically.
 
-| File | Contents |
-|------|----------|
-| `results/fixed_runs.csv` | Results from fixed-seed (deterministic) runs |
-| `results/random_runs.csv` | Results from random-seed runs |
-
-### 4. Generate figures and tables
-
-After the experiment runner completes, open `notebook.ipynb` and run all cells top-to-bottom. The notebook reads the CSV files above and produces the tables and figures reported in the paper.
-
----
-
-## AI Usage Disclaimer
-
-AI assistance was used in the following specific, non-algorithmic capacities only:
-
-- Refactoring manual Python loops to be NumPy-compliant (to benefit from Numpy vectorization)
-- Implementing multithreading in the experiment runner (due to number of trials exercised)
-- Appending new arguments to existing functions across 20+ separate files
-- Refactoring to remove code duplication
-- Restructuring this README
-
-All algorithmic logic, experimental design, and analysis are the authors' own work.
-
----
-
-## Development Setup
-
-> The content below is preserved from the original project coding guide.
-
----
-
-### Coding Guide
-
-This document describes the coding standards and development workflow used in this repository. The goal is to maintain consistent code style, clean collaboration, and predictable releases.
-
----
-
-### Naming Conventions
-
-Follow these naming conventions across the repository:
-
-| Type                        | Convention              | Example            |
-| --------------------------- | ----------------------- | ------------------ |
-| Variables                   | snake_case              | data_frame         |
-| Functions                   | snake_case              | load_dataset()     |
-| Constants                   | PascalCase              | ModelConfig        |
-| Public Classes / Interfaces | PascalCase              | DataProcessor      |
-| Private/Internal Functions  | _underscored_snake_case | _internal_helper() |
-
-Keeping naming consistent makes the code easier to read and maintain.
-
-> Unused variables can be replaced with just underscore like this ` _, b = (0, 2.36)`
-
----
-
-### Development Workflow
-
-This repository follows a Git Flow–inspired workflow to maintain stability while allowing active development.
-
-**Branch Flow**
-
-dev → feature → PR → dev → release PR → main
-
----
-
-### Repository Branch Structure
-
-#### main
-
-Stable, production-ready code. Always deployable or demo ready. Protected branch. No direct pushes allowed.
-
-#### dev
-
-Integration branch for development. All feature work is merged here first. Protected branch.
-
-#### Feature Branches
-
-Feature branches are created from dev.
-
-Naming format:
-
-```
-feature/#<ticketNo>-<short-description>
-```
-
-Example:
-
-```
-feature/#42-risk-classification
-```
-
----
-
-### Development Workflow Steps
-
-#### 1. Start a Feature
-
-Pull the latest dev branch and create a feature branch.
+### 3. Register the best models
 
 ```bash
-git checkout dev
-git pull origin dev
-git checkout -b feature/#ticketNo-short-description
+python register_best_models.py
 ```
 
-#### 2. Work on the Feature
+This queries MLflow for the highest-scoring run per (algo, strategy) pair and registers it in the Model Registry under a name like `pso-sma`, promoted to Production.
 
-- Commit regularly.
-- Use clear commit messages.
-- Ensure code runs locally before pushing.
-
-#### 3. Sync With Latest dev
-
-Before creating a Pull Request, update your branch with the latest changes from dev.
+### 4. Load and run a registered model
 
 ```bash
-git checkout dev
-git pull origin dev
-git checkout feature/#<ticketNo>-<feature-name>
-git merge dev
+python load_and_test.py
 ```
 
-#### 4. Create Pull Request
+Loads the Production version of a registered model and runs it on test data.
 
-Open a Pull Request: `feature/#<ticketNo>-<feature-name> → dev`
+### 5. Analyse results
 
-The PR description should include what was implemented and any notes for reviewers.
+Open `notebook.ipynb` and run all cells. It reads the `results/` CSVs and produces the summary tables and figures.
 
-#### 5. Code Review
+---
 
-At least one team member approval is required. Address comments before merging.
+## Automated run (Linux)
 
-#### 6. Merge Feature
+```bash
+./run.sh
+```
 
-Use Merge Commit when merging into dev. After merging, delete the feature branch (optional but recommended to keep the repository clean).
+Handles environment setup and launches the experiment runner. Tested on Linux (Arch); untested on macOS or Windows/WSL.
