@@ -4,7 +4,6 @@ Note: Currently all algorithms must start with same Initial population size due 
 on fixed populations
 """
 
-import json
 import os
 import time
 import importlib
@@ -24,7 +23,7 @@ import mlflow
 RUN_RANDOM = True
 RUN_FIXED = True
 
-N_RUNS = 5
+N_RUNS = 50
 GLOBAL_INITIAL_POPULATION_SIZE = 100
 RESULTS_DIR = "results"
 RANDOM_CSV = os.path.join(RESULTS_DIR, "random_runs.csv")
@@ -244,8 +243,8 @@ def plot_reproduce_result(result, split="both"):
 def collect_row(opt, algo, strategy, run_id, start_mode, train_prices, test_prices, hyperparams_used):
     _, _, sig_fn, reeval_fn = _get_runner(algo, strategy)
     best_params = opt.get_best_params()
-    _, _, _, _, equity_curve, final_cash = reeval_fn(best_params, train_prices, sig_fn)
-    _, _, _, _, test_equity_curve, test_final_cash = reeval_fn(best_params, test_prices,  sig_fn)
+    _, _, _, _, _, final_cash = reeval_fn(best_params, train_prices, sig_fn)
+    _, _, _, _, _, test_final_cash = reeval_fn(best_params, test_prices, sig_fn)
     return {
         "algo": algo,
         "strategy": strategy,
@@ -255,11 +254,8 @@ def collect_row(opt, algo, strategy, run_id, start_mode, train_prices, test_pric
         "best_fitness": opt.best_fitness,
         "epoch_count": opt.epoch_count,
         "runtime_ms": opt.time,
-        "equity_curve": equity_curve,
         "test_final_cash": test_final_cash,
-        "test_equity_curve": test_equity_curve,
         "best_params": best_params,
-        "hyperparams": hyperparams_used,
         "early_stopped": getattr(opt, "early_stop", False),
     }
 
@@ -284,7 +280,8 @@ def _run_task(args):
     row = collect_row(opt, algo, strategy, run_id, mode, train_prices, test_prices, HYPERPARAMS[algo])
 
     # MLflow logging
-    with mlflow.start_run():
+    run_name = f"{mode}-{algo}-{strategy}-seed{run_id}-{int(time.time())}"
+    with mlflow.start_run(run_name=run_name):
         mlflow.log_params({
             "algo": algo,
             "strategy": strategy,
@@ -298,6 +295,7 @@ def _run_task(args):
             "best_fitness": row["best_fitness"],
             "runtime_ms": row["runtime_ms"],
         })
+        mlflow.log_dict(row["best_params"], "best_params.json")
     return row
 
 def _run_parallel(tasks):
@@ -316,8 +314,6 @@ def _run_parallel(tasks):
 
 def _save_results(rows, csv_path):
     df = pd.DataFrame(rows)
-    for col in ("equity_curve", "test_equity_curve", "best_params", "hyperparams"):
-        df[col] = df[col].apply(json.dumps)
     df[COLUMNS].to_csv(csv_path, index=False)
     print(f"Saved {len(df)} rows to {csv_path}")
 
