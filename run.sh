@@ -33,3 +33,8 @@ fi
 echo "[Run] Starting experiment runner..."
 echo ""
 python experiment_runner.py "$@"
+
+echo ""
+echo "[Run] Registering best models..."
+echo ""
+python register_best_models.py
