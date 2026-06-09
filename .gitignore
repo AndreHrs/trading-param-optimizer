@@ -13,3 +13,4 @@ report/report-words.sum
 report/reportNotes.bib
 .installed
 mlartifacts
+mlflow.db
