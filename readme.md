@@ -10,14 +10,23 @@ The project optimises parameters for Bitcoin trading strategies using nature-ins
 
 Six optimisers are benchmarked against five moving-average crossover strategies on historical BTC/USD data:
 
-| Optimisers | Strategies |
-|---|---|
-| Particle Swarm Optimisation (PSO) | Double SMA crossover |
-| Atomic Orbital Search (AOS) | EMA/SMA crossover |
-| Manta Ray Foraging Optimisation (MRFO) | Triple MA crossover |
-| Symbiotic Organisms Search (SOS) | MACD-based |
-| African Buffalo Optimisation (ABO) | Weighted MA combination |
-| Generalised Pattern Search (GPS) — baseline | |
+| Optimisers |
+|---|
+| Particle Swarm Optimisation (PSO) |
+| Atomic Orbital Search (AOS) |
+| Manta Ray Foraging Optimisation (MRFO) |
+| Symbiotic Organisms Search (SOS) |
+| African Buffalo Optimisation (ABO) |
+| Generalised Pattern Search (GPS) — baseline |
+
+
+| Strategy | Parameters | Count |
+|---|---|---|
+| Double SMA crossover | `short_window`, `long_window` | 2 |
+| Double LMA crossover | `short_window`, `long_window` | 2 |
+| Double EMA crossover (shared α) | `short_window`, `long_window`, `alpha` | 3 |
+| Double EMA crossover (independent α) | `short_window`, `long_window`, `alpha_short`, `alpha_long` | 4 |
+| Weighted MA combination | `sma_weight_short`, `sma_weight_long`, `sma_short_window`, `sma_long_window`, `lma_weight_short`, `lma_weight_long`, `lma_short_window`, `lma_long_window`, `ema_weight_short`, `ema_weight_long`, `ema_short_window`, `ema_long_window`, `ema_alpha_short`, `ema_alpha_long` | 14 |
 
 Performance is measured by final USD value after simulating trades with a 3% fee on a $1000 starting balance.
 
